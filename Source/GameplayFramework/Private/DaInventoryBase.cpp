@@ -8,6 +8,7 @@
 #include "CoreGameplayTags.h"
 #include "DaInventoryItemBase.h"
 #include "GameplayTagContainer.h"
+#include "Net/UnrealNetwork.h"
 
 
 ADaInventoryBase::ADaInventoryBase()
@@ -105,6 +106,13 @@ TArray<ADaInventoryItemBase*> ADaInventoryBase::QueryByAttribute(FGameplayAttrib
 		}
 	}
 	return FilteredItems;
+}
+
+void ADaInventoryBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ADaInventoryBase, Items);
 }
 
 bool ADaMasterInventory::RemoveInventoryItem(ADaInventoryItemBase* Item, bool bRemoveSubItems)

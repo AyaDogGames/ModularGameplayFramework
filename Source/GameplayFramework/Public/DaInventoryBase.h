@@ -73,7 +73,8 @@ protected:
 	// Query items by attribute
 	UFUNCTION(BlueprintCallable, Category="Inventory")
 	TArray<ADaInventoryItemBase*> QueryByAttribute(FGameplayAttribute Attribute, float MinValue, float MaxValue) const;
-	
+
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 };
 
 UCLASS(Blueprintable)

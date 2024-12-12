@@ -8,6 +8,7 @@
 #include "GameplayTagContainer.h"
 #include "DaInventoryItemBase.generated.h"
 
+class UDaAbilitySet;
 class ADaInventoryBase;
 class UDaAbilitySystemComponent;
 class UDaBaseAttributeSet;
@@ -34,12 +35,13 @@ protected:
 	// Gameplay InventoryItemTags for static qualities
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Inventory")
 	FGameplayTagContainer InventoryItemTags;
-	
-	// Attribute Set for dynamic properties
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Inventory")
-	TSubclassOf<UDaBaseAttributeSet> AttributeSetClass; // Attribute set defining item-specific attributes
 
 	UPROPERTY(BlueprintReadOnly, Category="Components")
 	TObjectPtr<UDaAbilitySystemComponent> AbilitySystemComponent; // Handles dynamic gameplay effects
+
+	UPROPERTY(EditDefaultsOnly, Category="AbilitySystem")
+	TObjectPtr<UDaAbilitySet> AbilitySetToGrant;
 	
+	virtual void BeginPlay() override;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 };
