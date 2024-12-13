@@ -26,6 +26,8 @@ enum EInventoryItemDuplicationPolicy
 	DisallowDuplicates
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInventoryChanged, const TArray<UDaInventoryItemBase*>&, Items);
+
 UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class GAMEPLAYFRAMEWORK_API UDaInventoryComponent : public UActorComponent
 {
@@ -53,6 +55,13 @@ public:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_RemoveItem(UDaInventoryItemBase* Item);
+
+	UFUNCTION(BlueprintCallable, Category="Inventory")
+	static UDaInventoryComponent* GetInventoryFromActor(AActor* Actor);
+	
+	// Delegate to notify listeners when inventory changes
+	UPROPERTY(BlueprintAssignable, Category="Inventory")
+	FOnInventoryChanged OnInventoryChanged;
 	
 	UFUNCTION(BlueprintCallable, Category="Inventory")
 	TArray<UDaInventoryItemBase*> GetItems() const { return Items; }
@@ -86,6 +95,9 @@ protected:
 	TArray<UDaInventoryItemBase*> QueryByAttribute(FGameplayAttribute Attribute, float MinValue, float MaxValue) const;
 	
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
+private:
+	void NotifyInventoryChanged();
 };
 
 UCLASS(Blueprintable)

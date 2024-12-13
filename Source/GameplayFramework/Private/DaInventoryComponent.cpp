@@ -144,6 +144,19 @@ void UDaInventoryComponent::OnRep_Items()
 			// Integrate with UI or update local state as necessary
 		}
 	}
+
+	NotifyInventoryChanged();
+}
+
+void UDaInventoryComponent::NotifyInventoryChanged()
+{
+	OnInventoryChanged.Broadcast(Items);
+}
+
+UDaInventoryComponent* UDaInventoryComponent::GetInventoryFromActor(AActor* Actor)
+{
+	if (!Actor) return nullptr;
+	return Actor->FindComponentByClass<UDaInventoryComponent>();
 }
 
 TArray<UDaInventoryItemBase*> UDaInventoryComponent::QueryByTag(FGameplayTagQuery Query) const
