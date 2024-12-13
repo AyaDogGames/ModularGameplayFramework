@@ -29,7 +29,7 @@ void ADaInventoryItemBase::BeginPlay()
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 
 	// Ability Set should contain attribute set at minumum
-	if (!ensureAlways(AbilitySetToGrant))
+	if (ensureAlways(AbilitySetToGrant))
 	{
 		AbilitySystemComponent->GrantSet(AbilitySetToGrant);
 	}

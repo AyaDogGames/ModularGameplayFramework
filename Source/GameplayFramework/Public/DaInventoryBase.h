@@ -38,26 +38,35 @@ public:
 
 	// Abstract methods for special criteria (to be implemented in subclasses)
 	virtual bool IsComplete() const { return false; }
-	virtual bool IsEmpty() const { return Items.Num() == 0; }
+	virtual bool IsEmpty() const { return Items.IsEmpty(); }
 	virtual bool IsFull() const { return false; }
-	virtual bool IsItemValid(ADaInventoryItemBase* Item) const { return true; }
+	virtual bool IsItemValid(ADaInventoryItemBase* Item) const;
 	virtual bool IsItemValid(FGameplayTag Tag) const { return true; }
 
 	UFUNCTION(BlueprintCallable, Category="Inventory")
-	virtual bool AddItem(ADaInventoryItemBase* Item);
+	bool AddItem(ADaInventoryItemBase* Item);
 
 	UFUNCTION(BlueprintCallable, Category="Inventory")
-	virtual bool RemoveItem(ADaInventoryItemBase* Item);
+	bool RemoveItem(ADaInventoryItemBase* Item);
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_AddItem(ADaInventoryItemBase* Item);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_RemoveItem(ADaInventoryItemBase* Item);
+	
 	UFUNCTION(BlueprintCallable, Category="Inventory")
 	TArray<ADaInventoryItemBase*> GetItems() const { return Items; }
 	
 protected:
 
-	// Items in the inventory
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Inventory")
+	// Array for replicated inventory items
+	UPROPERTY(ReplicatedUsing="OnRep_Items", EditAnywhere, BlueprintReadWrite, Category="Inventory")
 	TArray<ADaInventoryItemBase*> Items;
 
+	UFUNCTION()
+	void OnRep_Items();
+	
 	// Decide how items get added based tags it might have 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Inventory")
 	TEnumAsByte<EInventoryItemInsertionPolicy> InsertionPolicy = EInventoryItemInsertionPolicy::AddAlways;
@@ -73,7 +82,7 @@ protected:
 	// Query items by attribute
 	UFUNCTION(BlueprintCallable, Category="Inventory")
 	TArray<ADaInventoryItemBase*> QueryByAttribute(FGameplayAttribute Attribute, float MinValue, float MaxValue) const;
-
+	
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 };
 
