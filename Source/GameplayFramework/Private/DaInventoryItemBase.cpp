@@ -4,39 +4,42 @@
 #include "DaInventoryItemBase.h"
 
 #include "AbilitySystemComponent.h"
+#include "DaInventoryComponent.h"
 #include "AbilitySystem/DaAbilitySystemComponent.h"
 #include "Net/UnrealNetwork.h"
 
-ADaInventoryItemBase::ADaInventoryItemBase()
+UDaInventoryItemBase::UDaInventoryItemBase()
 {
-	PrimaryActorTick.bCanEverTick = false;
-	bReplicates = true;
-	
-	AbilitySystemComponent = CreateDefaultSubobject<UDaAbilitySystemComponent>("AbilitySystemComp");
-	AbilitySystemComponent->SetIsReplicated(true);
-	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+	// Initialize components only if needed
+	if (!HasAnyFlags(RF_ClassDefaultObject))
+	{
+		AbilitySystemComponent = CreateDefaultSubobject<UDaAbilitySystemComponent>(TEXT("AbilitySystemComp"));
+		AbilitySystemComponent->SetIsReplicated(true);
+		AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
+		NestedInventory = CreateDefaultSubobject<UDaInventoryComponent>(TEXT("NestedInventory"));
+	}
 }
 
-UAbilitySystemComponent* ADaInventoryItemBase::GetAbilitySystemComponent() const
+UAbilitySystemComponent* UDaInventoryItemBase::GetAbilitySystemComponent() const
 {
 	return Cast<UAbilitySystemComponent>(AbilitySystemComponent);
 }
 
-void ADaInventoryItemBase::BeginPlay()
+void UDaInventoryItemBase::InitializeAbilitySystemComponent(AActor* OwnerActor)
 {
-	Super::BeginPlay();
-	
-	AbilitySystemComponent->InitAbilityActorInfo(this, this);
-
-	// Ability Set should contain attribute set at minumum
-	if (ensureAlways(AbilitySetToGrant))
+	if (AbilitySystemComponent)
 	{
-		AbilitySystemComponent->GrantSet(AbilitySetToGrant);
+		AbilitySystemComponent->InitAbilityActorInfo(OwnerActor, OwnerActor);
+		if (AbilitySetToGrant)
+		{
+			AbilitySystemComponent->GrantSet(AbilitySetToGrant);
+		}
 	}
 }
 
-void ADaInventoryItemBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+UDaInventoryComponent* UDaInventoryItemBase::GetNestedInventory() const
 {
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	return NestedInventory;
 }
 

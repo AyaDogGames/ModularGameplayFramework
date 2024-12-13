@@ -3,14 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "DaInventoryItemBase.h"
 #include "GameplayTagContainer.h"
-#include "GameFramework/Actor.h"
-#include "DaInventoryBase.generated.h"
+#include "Components/ActorComponent.h"
+#include "DaInventoryComponent.generated.h"
 
 struct FGameplayTagQuery;
 struct FGameplayAttribute;
-class ADaInventoryItemBase;
+class UDaInventoryItemBase;
 
 UENUM(BlueprintType)
 enum EInventoryItemInsertionPolicy
@@ -27,42 +26,45 @@ enum EInventoryItemDuplicationPolicy
 	DisallowDuplicates
 };
 
-UCLASS(Blueprintable)
-class GAMEPLAYFRAMEWORK_API ADaInventoryBase : public ADaInventoryItemBase
+UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+class GAMEPLAYFRAMEWORK_API UDaInventoryComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this actor's properties
-	ADaInventoryBase();
+	UDaInventoryComponent();
 
 	// Abstract methods for special criteria (to be implemented in subclasses)
 	virtual bool IsComplete() const { return false; }
 	virtual bool IsEmpty() const { return Items.IsEmpty(); }
 	virtual bool IsFull() const { return false; }
-	virtual bool IsItemValid(ADaInventoryItemBase* Item) const;
+	virtual bool IsItemValid(UDaInventoryItemBase* Item) const;
 	virtual bool IsItemValid(FGameplayTag Tag) const { return true; }
 
 	UFUNCTION(BlueprintCallable, Category="Inventory")
-	bool AddItem(ADaInventoryItemBase* Item);
+	bool AddItem(UDaInventoryItemBase* Item);
 
 	UFUNCTION(BlueprintCallable, Category="Inventory")
-	bool RemoveItem(ADaInventoryItemBase* Item);
+	bool RemoveItem(UDaInventoryItemBase* Item);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_AddItem(ADaInventoryItemBase* Item);
+	void Server_AddItem(UDaInventoryItemBase* Item);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_RemoveItem(ADaInventoryItemBase* Item);
+	void Server_RemoveItem(UDaInventoryItemBase* Item);
 	
 	UFUNCTION(BlueprintCallable, Category="Inventory")
-	TArray<ADaInventoryItemBase*> GetItems() const { return Items; }
+	TArray<UDaInventoryItemBase*> GetItems() const { return Items; }
 	
 protected:
-
+	// Gameplay InventoryTags for static qualities
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Inventory")
+	FGameplayTagContainer InventoryTags;
+	
 	// Array for replicated inventory items
 	UPROPERTY(ReplicatedUsing="OnRep_Items", EditAnywhere, BlueprintReadWrite, Category="Inventory")
-	TArray<ADaInventoryItemBase*> Items;
+	TArray<UDaInventoryItemBase*> Items;
 
 	UFUNCTION()
 	void OnRep_Items();
@@ -77,21 +79,21 @@ protected:
 	
 	// Query items by tag
 	UFUNCTION(BlueprintCallable, Category="Inventory")
-	TArray<ADaInventoryItemBase*> QueryByTag(FGameplayTagQuery Query) const;
+	TArray<UDaInventoryItemBase*> QueryByTag(FGameplayTagQuery Query) const;
 
 	// Query items by attribute
 	UFUNCTION(BlueprintCallable, Category="Inventory")
-	TArray<ADaInventoryItemBase*> QueryByAttribute(FGameplayAttribute Attribute, float MinValue, float MaxValue) const;
+	TArray<UDaInventoryItemBase*> QueryByAttribute(FGameplayAttribute Attribute, float MinValue, float MaxValue) const;
 	
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 };
 
 UCLASS(Blueprintable)
-class GAMEPLAYFRAMEWORK_API ADaMasterInventory : public ADaInventoryBase
+class GAMEPLAYFRAMEWORK_API UDaMasterInventory : public UDaInventoryComponent
 {
 	GENERATED_BODY()
 
 public:
-	bool RemoveInventoryItem(ADaInventoryItemBase* Item, bool bRemoveSubItems);
+	bool RemoveInventoryItem(UDaInventoryItemBase* Item, bool bRemoveSubItems);
 	
 };

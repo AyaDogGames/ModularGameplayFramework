@@ -4,28 +4,24 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
-#include "GameFramework/Actor.h"
 #include "GameplayTagContainer.h"
 #include "DaInventoryItemBase.generated.h"
 
 class UDaAbilitySet;
-class ADaInventoryBase;
 class UDaAbilitySystemComponent;
-class UDaBaseAttributeSet;
-
-
+class UDaInventoryComponent;
 
 /**
  * 
  */
 UCLASS(Blueprintable)
-class GAMEPLAYFRAMEWORK_API ADaInventoryItemBase : public AActor, public IAbilitySystemInterface
+class GAMEPLAYFRAMEWORK_API UDaInventoryItemBase : public UObject, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
 public:
 
-	ADaInventoryItemBase();
+	UDaInventoryItemBase();
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
@@ -36,12 +32,20 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Inventory")
 	FGameplayTagContainer InventoryItemTags;
 
-	UPROPERTY(BlueprintReadOnly, Category="Components")
-	TObjectPtr<UDaAbilitySystemComponent> AbilitySystemComponent; // Handles dynamic gameplay effects
+	UPROPERTY(BlueprintReadOnly, Category="AbilitySystem")
+	TObjectPtr<UDaAbilitySystemComponent> AbilitySystemComponent;
 
 	UPROPERTY(EditDefaultsOnly, Category="AbilitySystem")
 	TObjectPtr<UDaAbilitySet> AbilitySetToGrant;
-	
-	virtual void BeginPlay() override;
-	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
+public:
+	void InitializeAbilitySystemComponent(AActor* OwnerActor);
+
+	// If the item itself can host an inventory
+	UFUNCTION(BlueprintCallable, Category="Inventory")
+	UDaInventoryComponent* GetNestedInventory() const;
+
+protected:
+	UPROPERTY()
+	UDaInventoryComponent* NestedInventory;
 };

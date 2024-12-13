@@ -1,7 +1,7 @@
 // Copyright Dream Awake Solutions LLC
 
 
-#include "DaInventoryBase.h"
+#include "DaInventoryComponent.h"
 
 #include "AbilitySystemComponent.h"
 #include "AttributeSet.h"
@@ -12,13 +12,13 @@
 #include "Net/UnrealNetwork.h"
 
 
-ADaInventoryBase::ADaInventoryBase()
+UDaInventoryComponent::UDaInventoryComponent()
 {
-	PrimaryActorTick.bCanEverTick = false;
-	bReplicates = true;
+	PrimaryComponentTick.bCanEverTick = false;
+	SetIsReplicatedByDefault(true);
 }
 
-bool ADaInventoryBase::IsItemValid(ADaInventoryItemBase* Item) const
+bool UDaInventoryComponent::IsItemValid(UDaInventoryItemBase* Item) const
 {
 	if (!Item || IsFull())
 		return false;
@@ -31,7 +31,7 @@ bool ADaInventoryBase::IsItemValid(ADaInventoryItemBase* Item) const
 	bool bAllowedDuplicate = DuplicationPolicy == EInventoryItemDuplicationPolicy::AllowDuplicates;
 	if (ItemIDTag.IsValid())
 	{
-		for (ADaInventoryItemBase* ExistingItem : Items)
+		for (UDaInventoryItemBase* ExistingItem : Items)
 		{
 			if (ExistingItem->GetTags().HasTagExact(ItemIDTag))
 			{
@@ -51,8 +51,8 @@ bool ADaInventoryBase::IsItemValid(ADaInventoryItemBase* Item) const
 	}
 	else if (InsertionPolicy == EInventoryItemInsertionPolicy::AddOnlyIfTypeTagMatches)
 	{
-		// Check if this sub inventory type supports this type of item
-		FGameplayTag InventoryTypeTag = GetSpecificTag(InventoryItemTags, CoreGameplayTags::InventoryItem_Type);
+		// Check if this inventory supports this type of item
+		FGameplayTag InventoryTypeTag = GetSpecificTag(InventoryTags, CoreGameplayTags::InventoryItem_Type);
 		if (InventoryTypeTag.IsValid() && Item->GetTags().HasTag(InventoryTypeTag))
 		{
 			if (bAllowedDuplicate || !bDuplicateExists)
@@ -64,9 +64,9 @@ bool ADaInventoryBase::IsItemValid(ADaInventoryItemBase* Item) const
 	return false;
 }
 
-bool ADaInventoryBase::AddItem(ADaInventoryItemBase* Item)
+bool UDaInventoryComponent::AddItem(UDaInventoryItemBase* Item)
 {
-	if (HasAuthority())
+	if (GetOwnerRole() == ROLE_Authority)
 	{
 		if (Item)
 		{
@@ -88,19 +88,19 @@ bool ADaInventoryBase::AddItem(ADaInventoryItemBase* Item)
 	return false;
 }
 
-void ADaInventoryBase::Server_AddItem_Implementation(ADaInventoryItemBase* Item)
+void UDaInventoryComponent::Server_AddItem_Implementation(UDaInventoryItemBase* Item)
 {
 	AddItem(Item);
 }
 
-bool ADaInventoryBase::Server_AddItem_Validate(ADaInventoryItemBase* Item)
+bool UDaInventoryComponent::Server_AddItem_Validate(UDaInventoryItemBase* Item)
 {
 	return IsItemValid(Item);
 }
 
-bool ADaInventoryBase::RemoveItem(ADaInventoryItemBase* Item)
+bool UDaInventoryComponent::RemoveItem(UDaInventoryItemBase* Item)
 {
-	if (HasAuthority())
+	if (GetOwnerRole() == ROLE_Authority)
 	{
 		if (Item && Items.Remove(Item) > 0)
 		{
@@ -121,20 +121,20 @@ bool ADaInventoryBase::RemoveItem(ADaInventoryItemBase* Item)
 	return false;
 }
 
-void ADaInventoryBase::Server_RemoveItem_Implementation(ADaInventoryItemBase* Item)
+void UDaInventoryComponent::Server_RemoveItem_Implementation(UDaInventoryItemBase* Item)
 {
 	RemoveItem(Item);
 }
 
-bool ADaInventoryBase::Server_RemoveItem_Validate(ADaInventoryItemBase* Item)
+bool UDaInventoryComponent::Server_RemoveItem_Validate(UDaInventoryItemBase* Item)
 {
 	return Item != nullptr;
 }
 
-void ADaInventoryBase::OnRep_Items()
+void UDaInventoryComponent::OnRep_Items()
 {
 	// Notify UI or refresh local state upon inventory replication
-	for (ADaInventoryItemBase* Item : Items)
+	for (UDaInventoryItemBase* Item : Items)
 	{
 		if (Item)
 		{
@@ -146,10 +146,10 @@ void ADaInventoryBase::OnRep_Items()
 	}
 }
 
-TArray<ADaInventoryItemBase*> ADaInventoryBase::QueryByTag(FGameplayTagQuery Query) const
+TArray<UDaInventoryItemBase*> UDaInventoryComponent::QueryByTag(FGameplayTagQuery Query) const
 {
-	TArray<ADaInventoryItemBase*> FilteredItems;
-	for (ADaInventoryItemBase* Item : Items)
+	TArray<UDaInventoryItemBase*> FilteredItems;
+	for (UDaInventoryItemBase* Item : Items)
 	{
 		if (Query.Matches(Item->GetTags()))
 		{
@@ -159,11 +159,11 @@ TArray<ADaInventoryItemBase*> ADaInventoryBase::QueryByTag(FGameplayTagQuery Que
 	return FilteredItems;
 }
 
-TArray<ADaInventoryItemBase*> ADaInventoryBase::QueryByAttribute(FGameplayAttribute Attribute, float MinValue,
+TArray<UDaInventoryItemBase*> UDaInventoryComponent::QueryByAttribute(FGameplayAttribute Attribute, float MinValue,
 	float MaxValue) const
 {
-	TArray<ADaInventoryItemBase*> FilteredItems;
-	for (ADaInventoryItemBase* Item : Items)
+	TArray<UDaInventoryItemBase*> FilteredItems;
+	for (UDaInventoryItemBase* Item : Items)
 	{
 		if (Item && Item->GetAbilitySystemComponent())
 		{
@@ -177,23 +177,23 @@ TArray<ADaInventoryItemBase*> ADaInventoryBase::QueryByAttribute(FGameplayAttrib
 	return FilteredItems;
 }
 
-void ADaInventoryBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+void UDaInventoryComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ADaInventoryBase, Items);
+	DOREPLIFETIME(UDaInventoryComponent, Items);
 }
 
-bool ADaMasterInventory::RemoveInventoryItem(ADaInventoryItemBase* Item, bool bRemoveSubItems)
+bool UDaMasterInventory::RemoveInventoryItem(UDaInventoryItemBase* Item, bool bRemoveSubItems)
 {
 	bool bRemoved = RemoveItem(Item);
 
 	// remove all the items from the master inventory if the item removed was a sub inventory
 	if (bRemoved && Item->GetTags().HasTag(CoreGameplayTags::Inventory_Sub) && bRemoveSubItems)
 	{
-		if (ADaInventoryBase* SubInventory = Cast<ADaInventoryBase>(Item))
+		if (UDaInventoryComponent* SubInventory = Cast<UDaInventoryComponent>(Item))
 		{
-			for (ADaInventoryItemBase* ItemInSub : SubInventory->GetItems())
+			for (UDaInventoryItemBase* ItemInSub : SubInventory->GetItems())
 			{
 				RemoveItem(ItemInSub);
 			}
