@@ -45,10 +45,10 @@ public:
 	virtual bool IsItemValid(FGameplayTag Tag) const { return true; }
 
 	UFUNCTION(BlueprintCallable, Category="Inventory")
-	bool AddItem(UDaInventoryItemBase* Item);
+	virtual bool AddItem(UDaInventoryItemBase* Item);
 
 	UFUNCTION(BlueprintCallable, Category="Inventory")
-	bool RemoveItem(UDaInventoryItemBase* Item);
+	virtual bool RemoveItem(UDaInventoryItemBase* Item);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_AddItem(UDaInventoryItemBase* Item);
@@ -95,8 +95,7 @@ protected:
 	TArray<UDaInventoryItemBase*> QueryByAttribute(FGameplayAttribute Attribute, float MinValue, float MaxValue) const;
 	
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
-
-private:
+	
 	void NotifyInventoryChanged();
 };
 

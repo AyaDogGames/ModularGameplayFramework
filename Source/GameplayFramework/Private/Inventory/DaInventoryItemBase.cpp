@@ -1,10 +1,11 @@
 // Copyright Dream Awake Solutions LLC
 
 
-#include "DaInventoryItemBase.h"
+#include "Inventory/DaInventoryItemBase.h"
+#include "Inventory/DaInventoryComponent.h"
 
 #include "AbilitySystemComponent.h"
-#include "DaInventoryComponent.h"
+#include "CoreGameplayTags.h"
 #include "AbilitySystem/DaAbilitySystemComponent.h"
 #include "Net/UnrealNetwork.h"
 
@@ -35,6 +36,26 @@ void UDaInventoryItemBase::InitializeAbilitySystemComponent(AActor* OwnerActor)
 		{
 			AbilitySystemComponent->GrantSet(AbilitySetToGrant);
 		}
+	}
+}
+
+void UDaInventoryItemBase::ActivateEquipAbility()
+{
+	// Check for any variations of this tag
+	FGameplayTag ItemIDTag = GetSpecificTag(InventoryItemTags, CoreGameplayTags::InventoryItem_EquipAbility);
+	if (ItemIDTag.IsValid())
+	{
+		//TODO: Get ability from AbilitySet and Activate ... AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(ItemIDTag));
+	}
+}
+
+void UDaInventoryItemBase::EndEquipAbility()
+{
+	// Check for any variations of this tag
+	FGameplayTag ItemIDTag = GetSpecificTag(InventoryItemTags, CoreGameplayTags::InventoryItem_EquipAbility);
+	if (ItemIDTag.IsValid())
+	{
+		//TODO: End any activated abilities
 	}
 }
 

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "DaWidgetController.h"
+#include "UI/DaWidgetController.h"
 #include "DaInventoryWidgetController.generated.h"
 
 class UDaInventoryItemBase;
@@ -18,6 +18,8 @@ class GAMEPLAYFRAMEWORK_API UDaInventoryWidgetController : public UDaWidgetContr
 
 public:
 
+	virtual void BindCallbacksToDependencies() override;
+	
 	UFUNCTION(BlueprintCallable, Category = "DaInventoryWidgetController")
 	void InitializeInventory(AActor* Actor);
 

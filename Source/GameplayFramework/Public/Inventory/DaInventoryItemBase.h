@@ -41,6 +41,13 @@ protected:
 public:
 	void InitializeAbilitySystemComponent(AActor* OwnerActor);
 
+	// Tries to activate an ability on this inventory item with the tag InventoryItem.EquipAbility
+	UFUNCTION(BlueprintCallable, Category="AbilitySystem")
+	void ActivateEquipAbility();
+
+	UFUNCTION(BlueprintCallable, Category="AbilitySystem")
+	void EndEquipAbility();
+	
 	// If the item itself can host an inventory
 	UFUNCTION(BlueprintCallable, Category="Inventory")
 	UDaInventoryComponent* GetNestedInventory() const;

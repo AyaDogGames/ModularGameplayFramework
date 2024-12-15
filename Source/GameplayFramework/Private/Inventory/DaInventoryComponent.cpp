@@ -1,12 +1,12 @@
 // Copyright Dream Awake Solutions LLC
 
 
-#include "DaInventoryComponent.h"
+#include "Inventory/DaInventoryComponent.h"
+#include "Inventory/DaInventoryItemBase.h"
 
 #include "AbilitySystemComponent.h"
 #include "AttributeSet.h"
 #include "CoreGameplayTags.h"
-#include "DaInventoryItemBase.h"
 #include "GameplayFramework.h"
 #include "GameplayTagContainer.h"
 #include "Net/UnrealNetwork.h"
@@ -133,18 +133,6 @@ bool UDaInventoryComponent::Server_RemoveItem_Validate(UDaInventoryItemBase* Ite
 
 void UDaInventoryComponent::OnRep_Items()
 {
-	// Notify UI or refresh local state upon inventory replication
-	for (UDaInventoryItemBase* Item : Items)
-	{
-		if (Item)
-		{
-			// Log item replication
-			LOG("Replicated Item: %s", *Item->GetName());
-			
-			// Integrate with UI or update local state as necessary
-		}
-	}
-
 	NotifyInventoryChanged();
 }
 

@@ -1,10 +1,16 @@
 // Copyright Dream Awake Solutions LLC
 
 
-#include "UI/DaInventoryWidgetController.h"
+#include "Inventory/DaInventoryWidgetController.h"
 
-#include "DaInventoryComponent.h"
-#include "DaInventoryItemBase.h"
+#include "Inventory/DaInventoryComponent.h"
+#include "Inventory/DaInventoryItemBase.h"
+
+void UDaInventoryWidgetController::BindCallbacksToDependencies()
+{
+	Super::BindCallbacksToDependencies();
+	
+}
 
 void UDaInventoryWidgetController::InitializeInventory(AActor* Actor)
 {
