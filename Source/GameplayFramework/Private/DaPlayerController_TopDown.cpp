@@ -12,7 +12,7 @@
 ADaPlayerController_TopDown::ADaPlayerController_TopDown()
 {
 	Spline = CreateDefaultSubobject<USplineComponent>("Spline");
-	
+	InputType = EGameplayInputType::GameAndCursor;
 }
 
 void ADaPlayerController_TopDown::PlayerTick(float DeltaTime)

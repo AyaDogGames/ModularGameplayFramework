@@ -3,6 +3,9 @@
 
 #include "UI/DaHUD.h"
 
+#include "DaPlayerState.h"
+#include "Inventory/DaInventoryUIWidget.h"
+#include "Inventory/DaInventoryWidgetController.h"
 #include "UI/DaOverlayWidgetController.h"
 #include "UI/DaStatMenuWidgetController.h"
 #include "UI/DaUserWidgetBase.h"
@@ -29,6 +32,17 @@ UDaStatMenuWidgetController* ADaHUD::GetStatMenuWidgetController(const FWidgetCo
 	return StatMenuWidgetController;
 }
 
+UDaInventoryWidgetController* ADaHUD::GetInventoryWidgetController(const FWidgetControllerParams& WCParams)
+{
+	if (InventoryWidgetController == nullptr)
+	{
+		InventoryWidgetController = NewObject<UDaInventoryWidgetController>(this, InventoryWidgetControllerClass);
+		InventoryWidgetController->SetWidgetControllerParams(WCParams);
+		InventoryWidgetController->BindCallbacksToDependencies();
+	}
+	return InventoryWidgetController;
+}
+
 void ADaHUD::InitOverlay(APlayerController* PC, APlayerState* PS, UDaAbilitySystemComponent* ASC)
 {
 	checkf(OverlayWidgetClass, TEXT("OverlayWidgetClass uninitialized, fill out in HUD blueprint class defaults."));
@@ -45,6 +59,17 @@ void ADaHUD::InitOverlay(APlayerController* PC, APlayerState* PS, UDaAbilitySyst
 	WidgetController->BroadcastInitialValues();
 	
 	Widget->AddToViewport();
+}
+
+UDaInventoryWidgetController* ADaHUD::GetInventoryController(APlayerController* PC, APlayerState* PS, UDaAbilitySystemComponent* ASC)
+{
+	checkf(InventoryWidgetControllerClass, TEXT("InventoryWidgetControllerClass uninitialized, fill out in HUD blueprint class defaults."));
+	checkf(InventoryWidgetAttributeSetTags.IsValid(), TEXT("OverlayWidgetAttributeSetTags empty, Fill out AttributeSet Tags in HUD blueprint class defaults."));
+	
+	const FWidgetControllerParams WidgetControllerParams(PC, PS, ASC, InventoryWidgetAttributeSetTags);
+	UDaInventoryWidgetController* WidgetController = GetInventoryWidgetController(WidgetControllerParams);
+
+	return WidgetController;
 }
 
 void ADaHUD::RemoveOverlay()

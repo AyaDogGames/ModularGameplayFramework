@@ -9,12 +9,19 @@
 #include "AbilitySystem/DaAbilitySystemComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "DaInputComponent.h"
+#include "DaPlayerState.h"
+#include "Inventory/DaInventoryUIWidget.h"
+#include "Inventory/DaInventoryWidgetController.h"
 #include "Kismet/GameplayStatics.h"
+#include "UI/DaHUD.h"
+#include "UI/DaUserWidgetBase.h"
+#include "UI/DaWidgetController.h"
 
 
 ADaPlayerController::ADaPlayerController()
 {
 	bReplicates = true;
+	InputType = EGameplayInputType::GameOnly;
 }
 
 void ADaPlayerController::BeginPlay()
@@ -101,11 +108,23 @@ void ADaPlayerController::TogglePauseMenu()
 		PauseMenuInstance->RemoveFromParent();
 		PauseMenuInstance = nullptr;
 
-		bShowMouseCursor = false;
-		SetInputMode(FInputModeGameOnly());
-
+		if (InputType == EGameplayInputType::GameOnly)
+		{
+			bShowMouseCursor = false;
+			SetInputMode(FInputModeGameOnly());
+		}
+		else if (InputType == EGameplayInputType::GameAndCursor)
+		{
+			bShowMouseCursor = true;
+			SetInputMode(FInputModeGameAndUI());
+		} else
+		{
+			bShowMouseCursor = true;
+			SetInputMode(FInputModeUIOnly());
+		}
+		
 		//@TODO: Single-player only. Make work for multiplayer.
-		// Exapple issues to resolve: triggering abilities while the game is paused, or releasing your sprint button after pausing the game 
+		// Example issues to resolve: triggering abilities while the game is paused, or releasing your sprint button after pausing the game 
 		if (GetWorld()->IsNetMode(NM_Standalone))
 		{
 			UGameplayStatics::SetGamePaused(this, false);
@@ -117,6 +136,17 @@ void ADaPlayerController::TogglePauseMenu()
 	PauseMenuInstance = CreateWidget<UUserWidget>(this, PauseMenuClass);
 	if (PauseMenuInstance)
 	{
+		UDaInventoryUIWidget* DaPauseWidget = Cast<UDaInventoryUIWidget>(PauseMenuInstance);
+		if (DaPauseWidget)
+		{
+			ADaHUD* HUD = Cast<ADaHUD>(GetHUD());
+			ADaPlayerState* PS = GetPlayerState<ADaPlayerState>();
+			UDaInventoryWidgetController* WidgetController = HUD->GetInventoryController(this, PS, PS->GetDaAbilitySystemComponent());
+			DaPauseWidget->SetWidgetController(WidgetController);
+			WidgetController->BroadcastInitialValues();
+			DaPauseWidget->BindToInventory(PS->GetInventoryComponent());
+		}
+		
 		PauseMenuInstance->AddToViewport(100);
 
 		bShowMouseCursor = true;

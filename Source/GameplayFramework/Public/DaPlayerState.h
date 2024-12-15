@@ -7,6 +7,8 @@
 #include "GameFramework/PlayerState.h"
 #include "DaPlayerState.generated.h"
 
+class UDaInventoryComponent;
+class ADaPlayerController;
 class UDaBaseAttributeSet;
 class UGameplayEffect;
 class UDaAbilitySystemComponent;
@@ -61,6 +63,10 @@ public:
 	UDaAbilitySystemComponent* GetDaAbilitySystemComponent() const { return AbilitySystemComponent; }
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	// Players Master Inventory
+	UFUNCTION(BlueprintCallable, Category = "DA|PlayerState")
+	UDaInventoryComponent* GetInventoryComponent() const { return InventoryComp; }
+	
 	void InitializePlayerPawnData();
 
 	UFUNCTION(BlueprintNativeEvent)
@@ -98,6 +104,9 @@ protected:
 	// The ability system component sub-object used by player characters.
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	TObjectPtr<UDaAbilitySystemComponent> AbilitySystemComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
+	TObjectPtr<UDaInventoryComponent> InventoryComp;
 	
 	// Health attribute set used by this actor.
 	UPROPERTY(Transient)
