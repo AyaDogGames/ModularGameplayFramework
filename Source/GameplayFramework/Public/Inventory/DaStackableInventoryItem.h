@@ -6,16 +6,19 @@
 #include "DaInventoryItemBase.h"
 #include "DaStackableInventoryItem.generated.h"
 
+// delegate method to update UI When Quantity changes
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FStackableItemQuantitySignature, int32, NewQuantity);
+
 /**
  * 
  */
-UCLASS(Blueprintable)
+UCLASS(Blueprintable, BlueprintType)
 class GAMEPLAYFRAMEWORK_API UDaStackableInventoryItem : public UDaInventoryItemBase
 {
 	GENERATED_BODY()
 
 public:
-	
+
     // Maximum stack size for this item
     UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category="Inventory|Stacking")
     int32 MaxStackSize = 99;
@@ -24,6 +27,9 @@ public:
     UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category="Inventory|Stacking")
     int32 Quantity = 1;
 
+	UPROPERTY(BlueprintAssignable, Category="Attributes")
+	FStackableItemQuantitySignature StackQuantityUpdateDelegate;
+	
 	virtual bool CanMergeWith_Implementation(const UDaInventoryItemBase* OtherItem) const override;
 	virtual void MergeWith_Implementation(UDaInventoryItemBase* OtherItem) override;
 

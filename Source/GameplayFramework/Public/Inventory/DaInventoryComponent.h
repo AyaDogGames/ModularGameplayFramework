@@ -37,13 +37,22 @@ public:
 	// Sets default values for this actor's properties
 	UDaInventoryComponent();
 
-	// Abstract methods for special criteria (to be implemented in subclasses)
-	virtual bool IsComplete() const { return false; }
+	UFUNCTION(BlueprintCallable, Category="Inventory")
 	virtual bool IsEmpty() const { return Items.IsEmpty(); }
-	virtual bool IsFull() const { return false; }
-	virtual bool IsItemValid(UDaInventoryItemBase* Item) const;
-	virtual bool IsItemValid(FGameplayTag Tag) const { return true; }
 
+	UFUNCTION(BlueprintCallable, Category="Inventory")
+	virtual bool IsItemValid(UDaInventoryItemBase* Item) const;
+
+	//TODO: Implement base class versions of these
+	virtual bool IsItemValid(FGameplayTag Tag) const { return true; }
+	virtual bool IsComplete() const { return false; }
+
+	UFUNCTION(BlueprintCallable, Category="Inventory")
+	int32 GetMaxSize() const { return MaxSize; }
+
+	UFUNCTION(BlueprintCallable, Category="Inventory")
+	virtual bool IsFull() const { return Items.Num() >= MaxSize-1; }
+	
 	UFUNCTION(BlueprintCallable, Category="Inventory")
 	virtual bool AddItem(UDaInventoryItemBase* Item, int32 SlotIndex = -1);
 
@@ -75,6 +84,10 @@ protected:
 	UPROPERTY(ReplicatedUsing="OnRep_Items", EditAnywhere, BlueprintReadWrite, Category="Inventory")
 	TArray<UDaInventoryItemBase*> Items;
 
+	// Maximum  size for this inventory
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category="Inventory")
+	int32 MaxSize = 99;
+	
 	UFUNCTION()
 	void OnRep_Items();
 

@@ -16,9 +16,13 @@ void UDaStackableInventoryItem::MergeWith_Implementation(UDaInventoryItemBase* O
 	UDaStackableInventoryItem* StackableItem = Cast<UDaStackableInventoryItem>(OtherItem);
 	if (StackableItem)
 	{
+		// TODO: REPLICATION
+		// TODO: DESTROY ITEM WHEN Q=0
 		int32 TransferAmount = FMath::Min(StackableItem->Quantity, MaxStackSize - Quantity);
 		Quantity += TransferAmount;
 		StackableItem->Quantity -= TransferAmount;
+
+		StackQuantityUpdateDelegate.Broadcast(Quantity);
 	}
 }
 

@@ -70,6 +70,11 @@ void UDaInventoryItemBase::EndEquipAbility()
 	}
 }
 
+void UDaInventoryItemBase::OnRep_NestedInventory_Implementation()
+{
+	//TODO: Notify/Update UI
+}
+
 UDaInventoryComponent* UDaInventoryItemBase::GetNestedInventory() const
 {
 	return NestedInventory;

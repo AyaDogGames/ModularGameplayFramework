@@ -14,7 +14,7 @@ class UDaInventoryComponent;
 /**
  * 
  */
-UCLASS(Blueprintable)
+UCLASS(Blueprintable, BlueprintType)
 class GAMEPLAYFRAMEWORK_API UDaInventoryItemBase : public UObject, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
@@ -38,8 +38,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="AbilitySystem")
 	TObjectPtr<UDaAbilitySet> AbilitySetToGrant;
 
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Inventory")
+	UPROPERTY(ReplicatedUsing="OnRep_NestedInventory", BlueprintReadOnly, Category = "Inventory")
 	UDaInventoryComponent* NestedInventory;
+
+	UFUNCTION(BlueprintNativeEvent, Category="Inventory")
+	void OnRep_NestedInventory();
 	
 public:
 

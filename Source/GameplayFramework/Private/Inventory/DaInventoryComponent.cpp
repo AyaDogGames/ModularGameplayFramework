@@ -257,16 +257,17 @@ void UDaInventoryComponent::GetLifetimeReplicatedProps(TArray<class FLifetimePro
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UDaInventoryComponent, Items);
+	DOREPLIFETIME(UDaInventoryComponent, MaxSize);
 }
 
 bool UDaMasterInventory::RemoveInventoryItem(UDaInventoryItemBase* Item, bool bRemoveSubItems)
 {
 	bool bRemoved = RemoveItem(Item);
 
-	// remove all the items from the master inventory if the item removed was a sub inventory
+	// remove all the items in inventory if this item es tagged as being an inventory 
 	if (bRemoved && Item->GetTags().HasTag(CoreGameplayTags::Inventory_Sub) && bRemoveSubItems)
 	{
-		if (UDaInventoryComponent* SubInventory = Cast<UDaInventoryComponent>(Item))
+		if (UDaInventoryComponent* SubInventory = Item->GetNestedInventory())
 		{
 			for (UDaInventoryItemBase* ItemInSub : SubInventory->GetItems())
 			{
