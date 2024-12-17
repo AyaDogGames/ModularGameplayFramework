@@ -54,7 +54,8 @@ namespace CoreGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InventoryItem_Type, "InventoryItem.Type", "Tag for inventory item types.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InventoryItem_ID, "InventoryItem.ID", "Tag for inventory item IDs.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InventoryItem_EquipAbility, "InventoryItem.EquipAbility", "Base EquipAbility tag");
-
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InventoryItem_Slot, "InventoryItem.Slot", "Base Tag for inventory item slot.");
+		
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_Message, "Message", "Base Message Type");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_Message_Info, "Message.Info", "Base Info Message Type");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_Message_StatusUpdate, "Message.StatusUpdate", "Base Status Update Message Type");

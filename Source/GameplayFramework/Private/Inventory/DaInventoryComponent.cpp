@@ -7,8 +7,8 @@
 #include "AbilitySystemComponent.h"
 #include "AttributeSet.h"
 #include "CoreGameplayTags.h"
-#include "GameplayFramework.h"
 #include "GameplayTagContainer.h"
+#include "Inventory/DaStackableInventoryItem.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -33,7 +33,8 @@ bool UDaInventoryComponent::IsItemValid(UDaInventoryItemBase* Item) const
 	{
 		for (UDaInventoryItemBase* ExistingItem : Items)
 		{
-			if (ExistingItem->GetTags().HasTagExact(ItemIDTag))
+			UDaStackableInventoryItem* StackableItem = Cast<UDaStackableInventoryItem>(ExistingItem);
+			if (ExistingItem->GetTags().HasTagExact(ItemIDTag) && !StackableItem)
 			{
 				bDuplicateExists = true;
 				break;
@@ -64,71 +65,144 @@ bool UDaInventoryComponent::IsItemValid(UDaInventoryItemBase* Item) const
 	return false;
 }
 
-bool UDaInventoryComponent::AddItem(UDaInventoryItemBase* Item)
+void UDaInventoryComponent::RollbackPredictedItem(UDaInventoryItemBase* Item)
 {
-	if (GetOwnerRole() == ROLE_Authority)
+	if (PendingPredictedItems.Contains(Item))
 	{
-		if (Item)
+		PendingPredictedItems.Remove(Item);
+		Items.Remove(Item);
+		OnRep_Items();  // Sync UI after rollback
+	}
+}
+
+bool UDaInventoryComponent::AddItem(UDaInventoryItemBase* Item, int32 SlotIndex)
+{
+	if (Item && GetOwnerRole() == ROLE_Authority)
+	{
+		if (IsItemValid(Item))
 		{
-			Items.Add(Item);
+			if (SlotIndex != INDEX_NONE && Items.IsValidIndex(SlotIndex))
+			{
+				Items[SlotIndex] = Item;
+			}
+			else
+			{
+				for (UDaInventoryItemBase* ExistingItem : Items)
+				{
+					if (ExistingItem && ExistingItem->CanMergeWith(Item))
+					{
+						ExistingItem->MergeWith(Item);
+						OnRep_Items();
+						return true;
+					}
+				}
+				Items.Add(Item);
+			}
 			OnRep_Items();
 			return true;
 		}
-	} else
+	}
+	else
 	{
 		// Client Side Prediction
-		if (Item && !IsFull())
+		if (IsItemValid(Item))
 		{
-			Items.Add(Item);
+			if (SlotIndex != INDEX_NONE && Items.IsValidIndex(SlotIndex))
+			{
+				Items[SlotIndex] = Item;
+			}
+			else
+			{
+				for (UDaInventoryItemBase* ExistingItem : Items)
+				{
+					if (ExistingItem && ExistingItem->CanMergeWith(Item))
+					{
+						ExistingItem->MergeWith(Item);
+						OnRep_Items();
+						return true;
+					}
+				}
+				Items.Add(Item);
+			}
 			OnRep_Items();
-			Server_AddItem(Item); // Notify server
+			Server_AddItem(Item, SlotIndex);
+
+			// Log item for rollback in case prediction fails
+			PendingPredictedItems.Add(Item);
 			return true;
 		}
 	}
 	return false;
 }
 
-void UDaInventoryComponent::Server_AddItem_Implementation(UDaInventoryItemBase* Item)
+void UDaInventoryComponent::Server_AddItem_Implementation(UDaInventoryItemBase* Item, int32 SlotIndex)
 {
-	AddItem(Item);
+	if (AddItem(Item, SlotIndex))
+	{
+		// Remove from pending if valid
+		PendingPredictedItems.Remove(Item);
+	}
+	else
+	{
+		// Rollback prediction on client if invalid
+		if (GetOwnerRole() == ROLE_SimulatedProxy)
+		{
+			RollbackPredictedItem(Item);
+		}
+	}
 }
 
-bool UDaInventoryComponent::Server_AddItem_Validate(UDaInventoryItemBase* Item)
+bool UDaInventoryComponent::RemoveItem(UDaInventoryItemBase* Item, int32 SlotIndex)
 {
-	return IsItemValid(Item);
-}
-
-bool UDaInventoryComponent::RemoveItem(UDaInventoryItemBase* Item)
-{
+	if (!Item) return false;
+	
 	if (GetOwnerRole() == ROLE_Authority)
 	{
-		if (Item && Items.Remove(Item) > 0)
+		if (SlotIndex != INDEX_NONE && Items.IsValidIndex(SlotIndex) && Items[SlotIndex] == Item)
 		{
-			OnRep_Items(); // Notify clients to update UI
+			Items[SlotIndex] = nullptr;
+		}
+		else if (Items.Remove(Item) > 0)
+		{
+			OnRep_Items(); 
 			return true;
 		}
 	}
 	else
 	{
 		// Client-side prediction
-		if (Item && Items.Remove(Item) > 0)
+		if (SlotIndex != INDEX_NONE && Items.IsValidIndex(SlotIndex) && Items[SlotIndex] == Item)
+		{
+			Items[SlotIndex] = nullptr;
+		}
+		else if (Items.Remove(Item) > 0)
 		{
 			OnRep_Items();
-			Server_RemoveItem(Item); // Notify server
+			Server_RemoveItem(Item, SlotIndex);
+
+			// Log item for rollback in case prediction fails
+			PendingPredictedItems.Add(Item);
 			return true;
 		}
 	}
 	return false;
 }
 
-void UDaInventoryComponent::Server_RemoveItem_Implementation(UDaInventoryItemBase* Item)
+void UDaInventoryComponent::Server_RemoveItem_Implementation(UDaInventoryItemBase* Item, int32 SlotIndex)
 {
-	RemoveItem(Item);
-}
-
-bool UDaInventoryComponent::Server_RemoveItem_Validate(UDaInventoryItemBase* Item)
-{
-	return Item != nullptr;
+	if (RemoveItem(Item, SlotIndex))
+	{
+		// Remove from pending if valid
+		PendingPredictedItems.Remove(Item);
+	}
+	else
+	{
+		// Rollback prediction on client if invalid
+		if (GetOwnerRole() == ROLE_SimulatedProxy)
+		{
+			RollbackPredictedItem(Item);
+		}
+	}
 }
 
 void UDaInventoryComponent::OnRep_Items()

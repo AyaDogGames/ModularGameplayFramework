@@ -5,16 +5,28 @@
 
 #include "Net/UnrealNetwork.h"
 
-bool UDaStackableInventoryItem::CanStackWith(const UDaStackableInventoryItem* Other) const
+bool UDaStackableInventoryItem::CanMergeWith_Implementation(const UDaInventoryItemBase* OtherItem) const
 {
-	// TODO: Check gameplay tags
-	return Other && Other->GetClass() == GetClass() && Quantity < MaxStackSize;
+	const UDaStackableInventoryItem* StackableItem = Cast<UDaStackableInventoryItem>(OtherItem);
+	return StackableItem && StackableItem->GetClass() == GetClass() && Quantity < MaxStackSize;
 }
 
-// Replication support for Quantity
+void UDaStackableInventoryItem::MergeWith_Implementation(UDaInventoryItemBase* OtherItem)
+{
+	UDaStackableInventoryItem* StackableItem = Cast<UDaStackableInventoryItem>(OtherItem);
+	if (StackableItem)
+	{
+		int32 TransferAmount = FMath::Min(StackableItem->Quantity, MaxStackSize - Quantity);
+		Quantity += TransferAmount;
+		StackableItem->Quantity -= TransferAmount;
+	}
+}
+
+// Replication support
 void UDaStackableInventoryItem::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(UDaStackableInventoryItem, Quantity);
+	DOREPLIFETIME(UDaStackableInventoryItem, MaxStackSize);
 }

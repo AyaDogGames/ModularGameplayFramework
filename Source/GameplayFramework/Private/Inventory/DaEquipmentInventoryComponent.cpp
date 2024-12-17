@@ -3,6 +3,9 @@
 
 #include "Inventory/DaEquipmentInventoryComponent.h"
 
+#include "CoreGameplayTags.h"
+#include "GameplayFramework.h"
+#include "IDetailTreeNode.h"
 #include "Inventory/DaInventoryItemBase.h"
 
 
@@ -12,72 +15,84 @@ UDaEquipmentInventoryComponent::UDaEquipmentInventoryComponent()
 	SetIsReplicatedByDefault(true);
 }
 
-bool UDaEquipmentInventoryComponent::IsItemValid(UDaInventoryItemBase* Item) const
+void UDaEquipmentInventoryComponent::EquipItem(UDaInventoryItemBase* Item, FName EquipSlotName)
 {
-	return Super::IsItemValid(Item);
-}
-
-bool UDaEquipmentInventoryComponent::EquipItem(UDaInventoryItemBase* Item, FName SlotName)
-{
-	if (GetOwnerRole() != ROLE_Authority)
+	if (!Item || !EquipSlotName.IsNone())
 	{
-		Server_EquipItem(Item, SlotName);
-		return false;
+		LOG_WARNING("EquipItem: Item or slot is null");
+		return;
 	}
 
-	int32 SlotIndex = SlotNames.IndexOfByKey(SlotName);
-	if (SlotIndex != INDEX_NONE)
+	// check to see if the item can be equipped in this slot by seeing if it has the same slot tag in its tags
+	FGameplayTag EquipTag = FGameplayTag::RequestGameplayTag(EquipSlotName);
+	if (Item->GetTags().HasTag(EquipTag))
 	{
-		Items[SlotIndex] = Item;
-		OnRep_Items();
-		Item->ActivateEquipAbility();
+		int32 SlotIndex = SlotNames.Contains(EquipSlotName) ? SlotNames.IndexOfByKey(EquipSlotName) : INDEX_NONE;
+		if (SlotIndex == INDEX_NONE)
+		{
+			LOG_WARNING("EquipItem: SlotIndex does not exist, this must be created in advance");
+			return;
+		}
+
+		if (!AddItem(Item, SlotIndex))
+		{
+			LOG_WARNING("EquipItem: AddItem failed");
+		}
+	}
+}
+
+bool UDaEquipmentInventoryComponent::AddItem(UDaInventoryItemBase* Item, int32 SlotIndex)
+{
+	if (AddItem(Item, SlotIndex)) // Use base AddItem for replication/prediction
+	{
+		if (GetOwnerRole() == ROLE_Authority)
+		{
+			Item->ActivateEquipAbility(); // Activate ability on successful server equip
+		}
 		return true;
 	}
 	return false;
 }
 
-bool UDaEquipmentInventoryComponent::UnequipItem(FName SlotName)
+
+void UDaEquipmentInventoryComponent::UnequipItem(FName EquipSlotName)
 {
-	if (GetOwnerRole() != ROLE_Authority)
+	if (!EquipSlotName.IsNone())
 	{
-		Server_UnequipItem(SlotName);
-		return false;
+		LOG_WARNING("UnequipItem slot is null");
+		return;
 	}
 
-	int32 SlotIndex = SlotNames.IndexOfByKey(SlotName);
-	if (SlotIndex != INDEX_NONE)
+	int32 SlotIndex = SlotNames.Contains(EquipSlotName) ? SlotNames.IndexOfByKey(EquipSlotName) : INDEX_NONE;
+	if (SlotIndex == INDEX_NONE)
 	{
-		if (UDaInventoryItemBase* Item = Items[SlotIndex])
+		LOG_WARNING("UnequipItem: SlotIndex does not exist, this must be created in advance");
+		return;
+	}
+	
+	if (UDaInventoryItemBase* Item = Items[SlotIndex])
+	{
+		if (!RemoveItem(Item, SlotIndex))
 		{
-			// stop any equip abilities
+			LOG_WARNING("UnequipItem: RemoveItem failed");
+		}
+	}
+}
+
+bool UDaEquipmentInventoryComponent::RemoveItem(UDaInventoryItemBase* Item, int32 SlotIndex)
+{
+	if (RemoveItem(Item, SlotIndex)) // Use base RemoveItem for replication/prediction
+	{
+		if (GetOwnerRole() == ROLE_Authority)
+		{
 			Item->EndEquipAbility();
 		}
-		
-		Items[SlotIndex] = nullptr;
-		OnRep_Items();
 		return true;
 	}
+
+	// Item not found in the expected slot
 	return false;
 }
 
-void UDaEquipmentInventoryComponent::Server_EquipItem_Implementation(UDaInventoryItemBase* Item, FName SlotName)
-{
-	EquipItem(Item, SlotName);
-}
-
-bool UDaEquipmentInventoryComponent::Server_EquipItem_Validate(UDaInventoryItemBase* Item, FName SlotName)
-{
-	return Item != nullptr;
-}
-
-void UDaEquipmentInventoryComponent::Server_UnequipItem_Implementation(FName SlotName)
-{
-	UnequipItem(SlotName);
-}
-
-bool UDaEquipmentInventoryComponent::Server_UnequipItem_Validate(FName SlotName)
-{
-	return true;
-}
 
 

@@ -27,6 +27,17 @@ UAbilitySystemComponent* UDaInventoryItemBase::GetAbilitySystemComponent() const
 	return Cast<UAbilitySystemComponent>(AbilitySystemComponent);
 }
 
+bool UDaInventoryItemBase::CanMergeWith_Implementation(const UDaInventoryItemBase* OtherItem) const
+{
+	// subclasses to implement if desired merging behavior
+	return false;
+}
+
+void UDaInventoryItemBase::MergeWith_Implementation(UDaInventoryItemBase* OtherItem)
+{
+	// subclasses to implement if desired merging behavior
+}
+
 void UDaInventoryItemBase::InitializeAbilitySystemComponent(AActor* OwnerActor)
 {
 	if (AbilitySystemComponent)
@@ -64,3 +75,9 @@ UDaInventoryComponent* UDaInventoryItemBase::GetNestedInventory() const
 	return NestedInventory;
 }
 
+void UDaInventoryItemBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UDaInventoryItemBase, NestedInventory);
+}

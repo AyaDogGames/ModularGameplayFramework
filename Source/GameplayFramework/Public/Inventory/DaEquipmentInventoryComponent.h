@@ -16,25 +16,19 @@ public:
 	// Constructor
 	UDaEquipmentInventoryComponent();
 
-	// Overrides to handle slot validation
-	virtual bool IsItemValid(UDaInventoryItemBase* Item) const override;
+	UFUNCTION(BlueprintCallable)
+	void EquipItem(UDaInventoryItemBase* Item, FName EquipSlotName);
 
-	UFUNCTION(BlueprintCallable, Category="Inventory|Equipment")
-	bool EquipItem(UDaInventoryItemBase* Item, FName SlotName);
-
-	UFUNCTION(BlueprintCallable, Category="Inventory|Equipment")
-	bool UnequipItem(FName SlotName);
+	UFUNCTION(BlueprintCallable)
+	void UnequipItem(FName EquipSlotName);
 
 protected:
 	// Mapping of equipment slots to items
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Inventory|Equipment")
 	TArray<FName> SlotNames;
-	
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_EquipItem(UDaInventoryItemBase* Item, FName SlotName);
 
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_UnequipItem(FName SlotName);
+	virtual bool AddItem(UDaInventoryItemBase* Item, int32 SlotIndex = -1) override;
+	virtual bool RemoveItem(UDaInventoryItemBase* Item, int32 SlotIndex = -1) override;
 };
 
 

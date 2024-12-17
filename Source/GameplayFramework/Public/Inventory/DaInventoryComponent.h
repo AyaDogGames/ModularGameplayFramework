@@ -45,16 +45,16 @@ public:
 	virtual bool IsItemValid(FGameplayTag Tag) const { return true; }
 
 	UFUNCTION(BlueprintCallable, Category="Inventory")
-	virtual bool AddItem(UDaInventoryItemBase* Item);
+	virtual bool AddItem(UDaInventoryItemBase* Item, int32 SlotIndex = -1);
 
 	UFUNCTION(BlueprintCallable, Category="Inventory")
-	virtual bool RemoveItem(UDaInventoryItemBase* Item);
+	virtual bool RemoveItem(UDaInventoryItemBase* Item, int32 SlotIndex = -1);
 
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_AddItem(UDaInventoryItemBase* Item);
+	UFUNCTION(Server, Reliable)
+	void Server_AddItem(UDaInventoryItemBase* Item, int32 SlotIndex = INDEX_NONE);
 
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_RemoveItem(UDaInventoryItemBase* Item);
+	UFUNCTION(Server, Reliable)
+	void Server_RemoveItem(UDaInventoryItemBase* Item, int32 SlotIndex = INDEX_NONE);
 
 	UFUNCTION(BlueprintCallable, Category="Inventory")
 	static UDaInventoryComponent* GetInventoryFromActor(AActor* Actor);
@@ -77,6 +77,12 @@ protected:
 
 	UFUNCTION()
 	void OnRep_Items();
+
+	UPROPERTY()
+	TArray<UDaInventoryItemBase*> PendingPredictedItems;
+
+	UFUNCTION()
+	void RollbackPredictedItem(UDaInventoryItemBase* Item);
 	
 	// Decide how items get added based tags it might have 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Inventory")

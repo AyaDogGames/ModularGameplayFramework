@@ -38,7 +38,17 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="AbilitySystem")
 	TObjectPtr<UDaAbilitySet> AbilitySetToGrant;
 
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Inventory")
+	UDaInventoryComponent* NestedInventory;
+	
 public:
+
+	UFUNCTION(BlueprintNativeEvent, Category = "Inventory")
+	bool CanMergeWith(const UDaInventoryItemBase* OtherItem) const;
+
+	UFUNCTION(BlueprintNativeEvent, Category = "Inventory")
+	void MergeWith(UDaInventoryItemBase* OtherItem);
+	
 	void InitializeAbilitySystemComponent(AActor* OwnerActor);
 
 	// Tries to activate an ability on this inventory item with the tag InventoryItem.EquipAbility
@@ -51,8 +61,5 @@ public:
 	// If the item itself can host an inventory
 	UFUNCTION(BlueprintCallable, Category="Inventory")
 	UDaInventoryComponent* GetNestedInventory() const;
-
-protected:
-	UPROPERTY()
-	UDaInventoryComponent* NestedInventory;
+   
 };
