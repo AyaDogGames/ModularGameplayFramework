@@ -30,8 +30,6 @@ public:
 	UDaInventoryWidgetController* GetInventoryWidgetController(const FWidgetControllerParams& WCParams);
 
 	void InitOverlay(APlayerController* PC, APlayerState* PS, UDaAbilitySystemComponent* ASC);
-	UDaInventoryWidgetController* GetInventoryController(APlayerController* PC, APlayerState* PS, UDaAbilitySystemComponent* ASC);
-	
 	void RemoveOverlay();
 
 	FORCEINLINE FGameplayTagContainer GetOverlayAttributeSetTags() { return OverlayWidgetAttributeSetTags; } 
@@ -54,9 +52,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category=UI)
 	FGameplayTagContainer StatMenuWidgetAttributeSetTags;
-
-	UPROPERTY(EditAnywhere, Category=UI)
-	TSubclassOf<UDaUserWidgetBase> InventoryWidgetClass;
 	
 	UPROPERTY(EditAnywhere, Category=UI)
 	TSubclassOf<UDaInventoryWidgetController> InventoryWidgetControllerClass;

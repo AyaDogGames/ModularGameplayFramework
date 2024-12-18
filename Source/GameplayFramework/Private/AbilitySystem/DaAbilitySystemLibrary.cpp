@@ -42,3 +42,20 @@ UDaStatMenuWidgetController* UDaAbilitySystemLibrary::GetStatMenuWidgetControlle
 	}
 	return nullptr;
 }
+
+UDaInventoryWidgetController* UDaAbilitySystemLibrary::GetInventoryMenuWidgetController(
+	const UObject* WorldContextObject)
+{
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(WorldContextObject, 0))
+	{
+		if (ADaHUD* HUD = Cast<ADaHUD>(PC->GetHUD()))
+		{
+			ADaPlayerState* PS = PC->GetPlayerState<ADaPlayerState>();
+			UDaAbilitySystemComponent* ASC = Cast<UDaAbilitySystemComponent>(PS->GetAbilitySystemComponent());
+			const FGameplayTagContainer SetTags = HUD->GetInventoryAttributeSetTags();
+			const FWidgetControllerParams WidgetControllerParams(PC, PS, ASC, SetTags);
+			return HUD->GetInventoryWidgetController(WidgetControllerParams);
+		}
+	}
+	return nullptr;
+}

@@ -61,17 +61,6 @@ void ADaHUD::InitOverlay(APlayerController* PC, APlayerState* PS, UDaAbilitySyst
 	Widget->AddToViewport();
 }
 
-UDaInventoryWidgetController* ADaHUD::GetInventoryController(APlayerController* PC, APlayerState* PS, UDaAbilitySystemComponent* ASC)
-{
-	checkf(InventoryWidgetControllerClass, TEXT("InventoryWidgetControllerClass uninitialized, fill out in HUD blueprint class defaults."));
-	checkf(InventoryWidgetAttributeSetTags.IsValid(), TEXT("OverlayWidgetAttributeSetTags empty, Fill out AttributeSet Tags in HUD blueprint class defaults."));
-	
-	const FWidgetControllerParams WidgetControllerParams(PC, PS, ASC, InventoryWidgetAttributeSetTags);
-	UDaInventoryWidgetController* WidgetController = GetInventoryWidgetController(WidgetControllerParams);
-
-	return WidgetController;
-}
-
 void ADaHUD::RemoveOverlay()
 {
 	if (OverlayWidget)

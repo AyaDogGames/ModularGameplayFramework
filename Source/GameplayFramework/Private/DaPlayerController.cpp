@@ -136,19 +136,7 @@ void ADaPlayerController::TogglePauseMenu()
 	PauseMenuInstance = CreateWidget<UUserWidget>(this, PauseMenuClass);
 	if (PauseMenuInstance)
 	{
-		UDaInventoryUIWidget* DaPauseWidget = Cast<UDaInventoryUIWidget>(PauseMenuInstance);
-		if (DaPauseWidget)
-		{
-			ADaHUD* HUD = Cast<ADaHUD>(GetHUD());
-			ADaPlayerState* PS = GetPlayerState<ADaPlayerState>();
-			UDaInventoryWidgetController* WidgetController = HUD->GetInventoryController(this, PS, PS->GetDaAbilitySystemComponent());
-			DaPauseWidget->SetWidgetController(WidgetController);
-			WidgetController->BroadcastInitialValues();
-			DaPauseWidget->BindToInventory(PS->GetInventoryComponent());
-		}
-		
 		PauseMenuInstance->AddToViewport(100);
-
 		bShowMouseCursor = true;
 		SetInputMode(FInputModeUIOnly());
 
@@ -158,4 +146,5 @@ void ADaPlayerController::TogglePauseMenu()
 			UGameplayStatics::SetGamePaused(this, true);
 		}
 	}
+	
 }
