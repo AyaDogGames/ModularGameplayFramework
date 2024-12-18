@@ -11,6 +11,8 @@ class UDaAbilitySet;
 class UDaAbilitySystemComponent;
 class UDaInventoryComponent;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInventoryItemChanged, UDaInventoryItemBase*, item);
+
 /**
  * 
  */
@@ -43,6 +45,10 @@ protected:
 
 	UFUNCTION(BlueprintNativeEvent, Category="Inventory")
 	void OnRep_NestedInventory();
+
+	// Delegate to notify listeners when inventory changes
+	UPROPERTY(BlueprintAssignable, Category="Inventory")
+	FOnInventoryItemChanged OnInventoryItemChanged;
 	
 public:
 

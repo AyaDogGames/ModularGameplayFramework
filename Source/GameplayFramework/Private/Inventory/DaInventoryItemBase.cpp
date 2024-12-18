@@ -57,6 +57,7 @@ void UDaInventoryItemBase::ActivateEquipAbility()
 	if (ItemIDTag.IsValid())
 	{
 		//TODO: Get ability from AbilitySet and Activate ... AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(ItemIDTag));
+		OnInventoryItemChanged.Broadcast(this);
 	}
 }
 
@@ -67,12 +68,14 @@ void UDaInventoryItemBase::EndEquipAbility()
 	if (ItemIDTag.IsValid())
 	{
 		//TODO: End any activated abilities
+		OnInventoryItemChanged.Broadcast(this);
 	}
 }
 
 void UDaInventoryItemBase::OnRep_NestedInventory_Implementation()
 {
-	//TODO: Notify/Update UI
+	//Notify/Update UI
+	OnInventoryItemChanged.Broadcast(this);
 }
 
 UDaInventoryComponent* UDaInventoryItemBase::GetNestedInventory() const

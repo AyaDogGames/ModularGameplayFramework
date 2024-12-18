@@ -7,6 +7,7 @@
 #include "CoreGameplayTags.h"
 #include "DaPlayerState.h"
 #include "AbilitySystem/DaAbilitySystemComponent.h"
+#include "Inventory/DaInventoryWidgetController.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/DaHUD.h"
 #include "UI/DaWidgetController.h"
@@ -54,7 +55,9 @@ UDaInventoryWidgetController* UDaAbilitySystemLibrary::GetInventoryMenuWidgetCon
 			UDaAbilitySystemComponent* ASC = Cast<UDaAbilitySystemComponent>(PS->GetAbilitySystemComponent());
 			const FGameplayTagContainer SetTags = HUD->GetInventoryAttributeSetTags();
 			const FWidgetControllerParams WidgetControllerParams(PC, PS, ASC, SetTags);
-			return HUD->GetInventoryWidgetController(WidgetControllerParams);
+			UDaInventoryWidgetController* Controller = HUD->GetInventoryWidgetController(WidgetControllerParams);
+			Controller->InitializeInventory(PS);
+			return Controller;
 		}
 	}
 	return nullptr;
