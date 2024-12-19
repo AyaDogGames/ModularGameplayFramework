@@ -102,11 +102,14 @@ protected:
 	
 public:
 
-	UFUNCTION(BlueprintNativeEvent, Category = "Inventory")
-	bool CanMergeWith(const UDaInventoryItemBase* OtherItem) const;
+	UFUNCTION(BlueprintCallable, Category="AbilitySystem")
+	FGameplayTag GetType() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	virtual bool CanMergeWith(const UDaInventoryItemBase* OtherItem) const;
 
-	UFUNCTION(BlueprintNativeEvent, Category = "Inventory")
-	void MergeWith(UDaInventoryItemBase* OtherItem);
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	virtual void MergeWith(UDaInventoryItemBase* OtherItem);
 	
 	void InitializeAbilitySystemComponent(AActor* OwnerActor);
 

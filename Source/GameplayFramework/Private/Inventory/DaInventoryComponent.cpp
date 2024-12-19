@@ -10,6 +10,7 @@
 #include "GameplayFramework.h"
 #include "GameplayTagContainer.h"
 #include "Inventory/DaInventoryBlueprintLibrary.h"
+#include "Inventory/DaStackableInventoryItem.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -57,26 +58,36 @@ void UDaInventoryComponent::InitializeEmptySlots()
 	}
 }
 
+TArray<int32> UDaInventoryComponent::GetSlotsWithDuplicates(FGameplayTagContainer Tags) const
+{
+	FGameplayTag ItemIDTag = GetSpecificTag(Tags, CoreGameplayTags::InventoryItem_ID);
+
+	TArray<int32> DuplicateSlotIndexes;
+	if (ItemIDTag.IsValid())
+	{
+		int32 CurrentSlotIndex = 0;
+		for (UDaInventoryItemBase* ExistingItem : Items)
+		{
+			if (ExistingItem->GetTags().HasTagExact(ItemIDTag))
+			{
+				DuplicateSlotIndexes.Add(CurrentSlotIndex);
+			}
+			CurrentSlotIndex++;
+		}
+	}
+	return DuplicateSlotIndexes;
+}
+
+
 bool UDaInventoryComponent::IsItemValid(FGameplayTagContainer Tags) const
 {
 	// get the full ID tag for this item to check for duplicates 
 	FGameplayTag ItemIDTag = GetSpecificTag(Tags, CoreGameplayTags::InventoryItem_ID);
 
 	// check for duplicates
-	bool bDuplicateExists = false;
+	bool bDuplicateExists = !GetSlotsWithDuplicates(Tags).IsEmpty();
 	bool bAllowedDuplicate = DuplicationPolicy == EInventoryItemDuplicationPolicy::AllowDuplicates;
-	if (ItemIDTag.IsValid())
-	{
-		for (UDaInventoryItemBase* ExistingItem : Items)
-		{
-			if (ExistingItem->GetTags().HasTagExact(ItemIDTag))
-			{
-				bDuplicateExists = true;
-				break;
-			}
-		}
-	}
-
+	
 	// Add if item meets insertion and duplication policies
 	if (InsertionPolicy == EInventoryItemInsertionPolicy::AddAlways)
 	{
@@ -103,67 +114,120 @@ bool UDaInventoryComponent::IsItemValid(FGameplayTagContainer Tags) const
 	return false;
 }
 
-bool UDaInventoryComponent::AddItem(const UObject* SourceObject, int32 SlotIndex)
+int32 UDaInventoryComponent::FindSlot(FGameplayTagContainer Tags) const
 {
-	if (!IsValid(SourceObject)) return false;
-	
-	if (SlotIndex > INDEX_NONE && Items.IsValidIndex(SlotIndex))
+	int32 SlotIndex = INDEX_NONE;
+
+	// Find the first slot where we can stack a duplicate 
+	for (int32 DuplicateSlotIndex: GetSlotsWithDuplicates(Tags))
 	{
-		UDaInventoryItemBase* CurrentItem = Items[SlotIndex];
-		if (CurrentItem)
+		UDaInventoryItemBase* DuplicateItem = Items[DuplicateSlotIndex];
+		if (UDaStackableInventoryItem* StackableItem = Cast<UDaStackableInventoryItem>(DuplicateItem))
 		{
-			// Check if the current item is not empty
-			if (!CurrentItem->bIsEmptySlot)
+			// Check if this Stackable Item can support more on its stack
+			if (StackableItem->Quantity < StackableItem->MaxStackSize)
 			{
-				// Broadcast the old item's data before replacing it
-				FDaInventoryItemData OldData = CurrentItem->ToData();
-				
-				// Store old data to ensure proper rollback
-				if (GetOwnerRole() != ROLE_Authority)
-				{
-					PredictedItems.Add(SlotIndex, OldData);
-				}
-
-				// TODO: Stackableitems merge
-				
-				CurrentItem->OnInventoryItemRemoved.Broadcast(OldData);
-				//NotifyInventoryChanged(SlotIndex);
-			}
-
-			// Determine the required subclass
-			TSubclassOf<UDaInventoryItemBase> RequiredClass = UDaInventoryBlueprintLibrary::GetInventoryItemClass(SourceObject);
-			if (RequiredClass && CurrentItem->GetClass() != RequiredClass)
-			{
-				// Replace the current item with a new instance of the correct subclass (stackable?)
-				CurrentItem = UDaInventoryBlueprintLibrary::CreateInventoryItem(SourceObject);
-				Items[SlotIndex] = CurrentItem;
-			}
-
-			if (IsItemValid(CurrentItem->GetTags()))
-			{
-				FDaInventoryItemData NewData;
-				NewData.ItemClass = RequiredClass;
-				NewData.ItemID = SourceObject->GetFName();
-				NewData.Tags = CurrentItem->GetTags();
-				NewData.ItemName = NewData.ItemID;
-				CurrentItem->PopulateWithData(NewData);
-				
-				// Sync changes for server authority
-				if (GetOwnerRole() != ROLE_Authority)
-				{
-					// Log item for rollback in case prediction fails
-					Server_AddItem(SourceObject, SlotIndex);
-				} else
-				{
-					FilledSlots++;
-				}
-
-				OnRep_Items();
-				return true;
+				// We found the first stack that meets our criteria
+				SlotIndex = DuplicateSlotIndex;
+				break;
 			}
 		}
 	}
-		
+
+	// We didnt find a duplicate to stack with, check and see if there is any room in this inventory still
+	if (SlotIndex == INDEX_NONE && !IsComplete())
+	{
+		SlotIndex = GetSize();
+	}
+	
+	return SlotIndex;
+}
+
+bool UDaInventoryComponent::AddItem(const UObject* SourceObject, int32 SlotIndex)
+{
+	if (!IsValid(SourceObject)) return false;
+
+	// Determine the required subclass
+	TSubclassOf<UDaInventoryItemBase> RequiredClass = UDaInventoryBlueprintLibrary::GetInventoryItemClass(SourceObject);
+	if (RequiredClass)
+	{
+		UDaInventoryItemBase* NewItem = UDaInventoryBlueprintLibrary::CreateInventoryItem(SourceObject);
+		if (NewItem)
+		{
+			if (SlotIndex == INDEX_NONE)
+			{
+				// We're being asked to find a place to add this.
+				SlotIndex = FindSlot(NewItem->GetTags());
+			}
+
+			if (IsItemValid(NewItem->GetTags()))
+			{
+				if (SlotIndex > INDEX_NONE && Items.IsValidIndex(SlotIndex))
+				{
+					UDaInventoryItemBase* CurrentItem = Items[SlotIndex];
+					if (CurrentItem)
+					{
+						// Check if the current item is not empty
+						if (!CurrentItem->bIsEmptySlot)
+						{
+							// Broadcast the old item's data before replacing it
+							FDaInventoryItemData OldData = CurrentItem->ToData();
+				
+							// Store old data to ensure proper rollback
+							if (GetOwnerRole() != ROLE_Authority)
+							{
+								PredictedItems.Add(SlotIndex, OldData);
+							}
+
+							// Stackableitems merge
+							if (CurrentItem->CanMergeWith(NewItem))
+							{
+								CurrentItem->MergeWith(NewItem);
+							}
+							else
+							{
+								// Removing data, possibly a swap
+							
+								// Inform listeners we're replacing the item if we didnt just merge
+								CurrentItem->OnInventoryItemRemoved.Broadcast(OldData);
+							}
+
+							// broadcast our changes to the specific slot
+							NotifyInventoryChanged(SlotIndex);
+						}
+						else 
+						{
+							// Empty Slot
+						
+							// Determine the required subclass
+							if (RequiredClass && CurrentItem->GetClass() != RequiredClass)
+							{
+								// Replace the current item with a new instance of the correct subclass (if for example its a stackableItem or something else)
+								CurrentItem = NewItem;
+								Items[SlotIndex] = NewItem;
+							}
+						}
+						
+						// Now fill the current Item with slot data
+						CurrentItem->PopulateWithData(NewItem->ToData());
+						
+						// Sync changes for server authority
+						if (GetOwnerRole() != ROLE_Authority)
+						{
+							// Log item for rollback in case prediction fails
+							Server_AddItem(SourceObject, SlotIndex);
+						} else
+						{
+							FilledSlots++;
+						}
+
+						OnRep_Items();
+						return true;
+					}
+				}
+			}
+		}
+	}
 	return false;
 }
 

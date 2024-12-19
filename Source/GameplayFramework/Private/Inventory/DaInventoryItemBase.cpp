@@ -25,7 +25,6 @@ UDaInventoryItemBase::UDaInventoryItemBase()
 	}
 }
 
-
 void UDaInventoryItemBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -56,12 +55,18 @@ void UDaInventoryItemBase::ClearData()
 	Name = FName();
 }
 
+FGameplayTag UDaInventoryItemBase::GetType() const
+{
+	return GetSpecificTag(InventoryItemTags, CoreGameplayTags::InventoryItem_Type);
+}
+
+
 UDaInventoryItemBase* UDaInventoryItemBase::CreateFromData(const FDaInventoryItemData& Data)
 {
 	UDaInventoryItemBase* NewItem = NewObject<UDaInventoryItemBase>(GetTransientPackage(), Data.ItemClass);
 	if (NewItem)
 	{
-		NewItem->PopulateWithData(Data);
+		NewItem->bIsEmptySlot = false;
 	}
 	return NewItem;
 }
@@ -81,13 +86,13 @@ void UDaInventoryItemBase::PopulateWithData(const FDaInventoryItemData& Data)
 	// TODO: CreateNestedInventory( Data.NestedInventorySize );
 }
 
-bool UDaInventoryItemBase::CanMergeWith_Implementation(const UDaInventoryItemBase* OtherItem) const
+bool UDaInventoryItemBase::CanMergeWith(const UDaInventoryItemBase* OtherItem) const
 {
 	// subclasses to implement if desired merging behavior
 	return false;
 }
 
-void UDaInventoryItemBase::MergeWith_Implementation(UDaInventoryItemBase* OtherItem)
+void UDaInventoryItemBase::MergeWith(UDaInventoryItemBase* OtherItem)
 {
 	// subclasses to implement if desired merging behavior
 }

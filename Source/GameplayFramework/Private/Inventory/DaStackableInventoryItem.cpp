@@ -19,13 +19,20 @@
 // 	NewStack->MergeWith(NewStack2);
 // }
 
-bool UDaStackableInventoryItem::CanMergeWith_Implementation(const UDaInventoryItemBase* OtherItem) const
+bool UDaStackableInventoryItem::CanMergeWith(const UDaInventoryItemBase* OtherItem) const
 {
 	const UDaStackableInventoryItem* StackableItem = Cast<UDaStackableInventoryItem>(OtherItem);
-	return StackableItem && StackableItem->GetClass() == GetClass() && Quantity < MaxStackSize;
+	if (StackableItem && StackableItem->GetClass() == GetClass() && Quantity < MaxStackSize)
+	{
+		FGameplayTag ThisType = GetType();
+		FGameplayTag OtherType = OtherItem->GetType();
+		if (ThisType.MatchesTagExact(OtherType))
+			return true;
+	}
+	return false;
 }
 
-void UDaStackableInventoryItem::MergeWith_Implementation(UDaInventoryItemBase* OtherItem)
+void UDaStackableInventoryItem::MergeWith(UDaInventoryItemBase* OtherItem)
 {
 	UDaStackableInventoryItem* StackableItem = Cast<UDaStackableInventoryItem>(OtherItem);
 	if (StackableItem)

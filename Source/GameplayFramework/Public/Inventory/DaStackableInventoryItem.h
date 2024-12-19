@@ -30,8 +30,8 @@ public:
 	UPROPERTY(BlueprintAssignable, Category="Attributes")
 	FStackableItemQuantitySignature StackQuantityUpdateDelegate;
 	
-	virtual bool CanMergeWith_Implementation(const UDaInventoryItemBase* OtherItem) const override;
-	virtual void MergeWith_Implementation(UDaInventoryItemBase* OtherItem) override;
+	virtual bool CanMergeWith(const UDaInventoryItemBase* OtherItem) const override;
+	virtual void MergeWith(UDaInventoryItemBase* OtherItem) override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 };

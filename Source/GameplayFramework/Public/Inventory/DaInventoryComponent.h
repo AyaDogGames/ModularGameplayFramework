@@ -46,6 +46,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="Inventory")
 	virtual bool IsItemValid(FGameplayTagContainer Tags) const;
+
+	// returns the first SlotIndex where a duplicate of the same ID tag exists
+	UFUNCTION(BlueprintCallable, Category="Inventory")
+	virtual TArray<int32> GetSlotsWithDuplicates(FGameplayTagContainer Tags) const;
 	
 	// Cannot rely on this for stackable items
 	virtual bool IsComplete() const { return FilledSlots >= MaxSize; }
@@ -58,6 +62,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="Inventory")
 	virtual bool IsFull() const { return Items.Num() >= MaxSize-1; }
+
+	UFUNCTION(BlueprintCallable, Category="Inventory")
+	virtual int32 FindSlot(FGameplayTagContainer Tags) const;
 	
 	UFUNCTION(BlueprintCallable, Category="Inventory")
 	virtual bool AddItem(const UObject* SourceObject, int32 SlotIndex = -1);
