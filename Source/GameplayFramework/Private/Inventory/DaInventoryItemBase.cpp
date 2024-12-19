@@ -44,6 +44,8 @@ FDaInventoryItemData UDaInventoryItemBase::ToData() const
 	Data.ItemID = FName(GetNameSafe(this)); // TODO: Generate UUID From Tags
 	Data.ItemClass = GetClass();
 	Data.NestedInventorySize = NestedInventory ? NestedInventory->GetMaxSize() : 0;
+	Data.AbilitySetToGrant = AbilitySetToGrant;
+	Data.ThumbnailBrush = ThumbnailBrush;
 	return Data;
 }
 
@@ -52,6 +54,8 @@ void UDaInventoryItemBase::ClearData()
 	bIsEmptySlot = true;
 	InventoryItemTags = FGameplayTagContainer();
 	NestedInventory = nullptr;
+	AbilitySetToGrant = nullptr;
+	ThumbnailBrush = nullptr;
 	Name = FName();
 }
 
@@ -67,6 +71,7 @@ UDaInventoryItemBase* UDaInventoryItemBase::CreateFromData(const FDaInventoryIte
 	if (NewItem)
 	{
 		NewItem->bIsEmptySlot = false;
+		NewItem->PopulateWithData(Data);
 	}
 	return NewItem;
 }
@@ -78,10 +83,18 @@ UAbilitySystemComponent* UDaInventoryItemBase::GetAbilitySystemComponent() const
 
 void UDaInventoryItemBase::PopulateWithData(const FDaInventoryItemData& Data)
 {
-	// TODO: Fill this out right
-	bIsEmptySlot = false;
 	InventoryItemTags = Data.Tags;
 	Name = Data.ItemName;
+
+	if (Data.ThumbnailBrush)
+	{
+		ThumbnailBrush = Data.ThumbnailBrush;
+	}
+
+	if (Data.AbilitySetToGrant)
+	{
+		AbilitySetToGrant = Data.AbilitySetToGrant;
+	}
 	
 	// TODO: CreateNestedInventory( Data.NestedInventorySize );
 }

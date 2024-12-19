@@ -5,6 +5,8 @@
 
 #include "AbilitySystemComponent.h"
 #include "DaPickupItem.h"
+#include "DaPickup_Ability.h"
+#include "DaRenderUtilLibrary.h"
 #include "Inventory/DaStackableInventoryItem.h"
 
 
@@ -34,8 +36,25 @@ UDaInventoryItemBase* UDaBaseInventoryItemFactory::CreateInventoryItem(const UOb
 	if (const ADaPickupItem* Pickup = Cast<ADaPickupItem>(SourceObject))
 	{
 		FDaInventoryItemData Data;
-		Data.Tags = Pickup->GetAbilitySystemComponent()->GetOwnedGameplayTags();
-		Data.ItemID = FName("GeneratedFromPickup"); // Example item ID
+		if (Pickup->GetAbilitySystemComponent())
+		{
+			Data.Tags = Pickup->GetAbilitySystemComponent()->GetOwnedGameplayTags();
+		}
+
+		if (const ADaPickup_Ability* AbilityPickup = Cast<ADaPickup_Ability>(Pickup))
+		{
+			Data.AbilitySetToGrant = AbilityPickup->GetAbilitySet();
+		}
+
+		UTextureRenderTarget2D* ThumbnailRT = UDaRenderUtilLibrary::GenerateThumbnailWithRenderTarget(Pickup->GetMeshComponent(), GetWorld());
+		if (ThumbnailRT)
+		{
+			USlateBrushAsset* ThumbnailBrush = UDaRenderUtilLibrary::CreateSlateBrushFromRenderTarget(ThumbnailRT);
+			if (ThumbnailBrush)
+				Data.ThumbnailBrush = ThumbnailBrush;
+		}
+		
+		Data.ItemID = FName(Pickup->GetName()); 
 		Data.ItemClass = DetermineInventoryItemClass(SourceObject);
 		Data.ItemName = FName("Pickup"); // Example item name
 		return UDaInventoryItemBase::CreateFromData(Data);

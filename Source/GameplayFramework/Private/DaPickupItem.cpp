@@ -38,6 +38,7 @@ ADaPickupItem::ADaPickupItem()
 	bReplicates = true;
 }
 
+
 void ADaPickupItem::Interact_Implementation(APawn* InstigatorPawn)
 {
 	// Derived classes to implement

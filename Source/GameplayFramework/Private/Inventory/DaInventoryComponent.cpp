@@ -210,6 +210,7 @@ bool UDaInventoryComponent::AddItem(const UObject* SourceObject, int32 SlotIndex
 						
 						// Now fill the current Item with slot data
 						CurrentItem->PopulateWithData(NewItem->ToData());
+						CurrentItem->bIsEmptySlot = false;
 						
 						// Sync changes for server authority
 						if (GetOwnerRole() != ROLE_Authority)

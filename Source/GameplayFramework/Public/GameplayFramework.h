@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Kismet/KismetRenderingLibrary.h"
 #include "Modules/ModuleManager.h"
 
 // Define alias to easily keep track of custom channels in C++ (must match what is specified in Project Settings > Collision 

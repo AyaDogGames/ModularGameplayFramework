@@ -7,6 +7,7 @@
 #include "GameplayTagContainer.h"
 #include "DaInventoryItemBase.generated.h"
 
+class USlateBrushAsset;
 class IDaInventoryItemFactory;
 class UDaAbilitySet;
 class UDaAbilitySystemComponent;
@@ -32,6 +33,12 @@ struct FDaInventoryItemData
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FGameplayTagContainer Tags = FGameplayTagContainer();
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<USlateBrushAsset> ThumbnailBrush;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UDaAbilitySet* AbilitySetToGrant = nullptr;
+	
 	UPROPERTY(BlueprintReadOnly)
 	int32 ItemCount = 1;
 };
@@ -58,7 +65,7 @@ public:
 	FGameplayTagContainer GetTags() const { return InventoryItemTags; }
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category="Inventory")
-	bool bIsEmptySlot = false;
+	bool bIsEmptySlot = true;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category="Inventory")
 	FName Name;
@@ -84,16 +91,19 @@ protected:
 	// Tags that define this inventory slot (and what can be put in it)
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category="Inventory")
 	FGameplayTagContainer SlotTags;
-	
-	UPROPERTY(BlueprintReadOnly, Category="AbilitySystem")
-	TObjectPtr<UDaAbilitySystemComponent> AbilitySystemComponent;
 
-	UPROPERTY(EditDefaultsOnly, Category="AbilitySystem")
+	UPROPERTY(EditDefaultsOnly, Category="Inventory")
 	TObjectPtr<UDaAbilitySet> AbilitySetToGrant;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Inventory")
+	TObjectPtr<USlateBrushAsset> ThumbnailBrush;
+	
 	UPROPERTY(ReplicatedUsing="OnRep_NestedInventory", BlueprintReadOnly, Category = "Inventory")
 	UDaInventoryComponent* NestedInventory;
 
+	UPROPERTY(BlueprintReadOnly, Category="AbilitySystem")
+	TObjectPtr<UDaAbilitySystemComponent> AbilitySystemComponent;
+	
 	UFUNCTION(BlueprintNativeEvent, Category="Inventory")
 	void OnRep_NestedInventory();
 

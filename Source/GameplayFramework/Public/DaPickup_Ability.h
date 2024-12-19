@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CoreGameplayTags.h"
 #include "DaPickupItem.h"
 #include "DaPickup_Ability.generated.h"
 
@@ -19,6 +20,9 @@ public:
 
 	virtual FText GetInteractText_Implementation(APawn* InstigatorPawn) override;
 
+	UFUNCTION(BlueprintCallable, Category = "AbilitySystem")
+	UDaAbilitySet* GetAbilitySet() const { return AbilitySetToGrant; }
+	
 protected:
 
 	UPROPERTY(EditDefaultsOnly, Category="AbilitySystem")
