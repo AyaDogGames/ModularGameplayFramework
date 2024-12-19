@@ -7,11 +7,37 @@
 #include "GameplayTagContainer.h"
 #include "DaInventoryItemBase.generated.h"
 
+class IDaInventoryItemFactory;
 class UDaAbilitySet;
 class UDaAbilitySystemComponent;
 class UDaInventoryComponent;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInventoryItemChanged, UDaInventoryItemBase*, item);
+USTRUCT(BlueprintType)
+struct FDaInventoryItemData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FName ItemID = FName();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	int32 NestedInventorySize = 0;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FName ItemName = FName();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<class UDaInventoryItemBase> ItemClass = nullptr;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FGameplayTagContainer Tags = FGameplayTagContainer();
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 ItemCount = 1;
+};
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInventoryItemDataRemoved, const FDaInventoryItemData&, itemData);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInventoryItemUpdated, UDaInventoryItemBase*, item);
 
 /**
  * 
@@ -25,15 +51,40 @@ public:
 
 	UDaInventoryItemBase();
 
+	static UDaInventoryItemBase* CreateFromData(const FDaInventoryItemData& Data);
+	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	FGameplayTagContainer GetTags() const { return InventoryItemTags; }
+
+	UPROPERTY(Replicated, BlueprintReadOnly, Category="Inventory")
+	bool bIsEmptySlot = false;
+
+	UPROPERTY(Replicated, BlueprintReadOnly, Category="Inventory")
+	FName Name;
+	
+	virtual void PopulateWithData(const FDaInventoryItemData& Data);
+
+	virtual FDaInventoryItemData ToData() const;
+
+	virtual void ClearData();
+
+	static TArray<TScriptInterface<IDaInventoryItemFactory>> Factories;
+
+	// Delegate to notify listeners when inventory changes
+	UPROPERTY(BlueprintAssignable, Category="Inventory")
+	FOnInventoryItemDataRemoved OnInventoryItemRemoved;
 	
 protected:
-	// Gameplay InventoryItemTags for static qualities
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Inventory")
+
+	// Tags the item has if !bIsEmptySlot
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category="Inventory")
 	FGameplayTagContainer InventoryItemTags;
 
+	// Tags that define this inventory slot (and what can be put in it)
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category="Inventory")
+	FGameplayTagContainer SlotTags;
+	
 	UPROPERTY(BlueprintReadOnly, Category="AbilitySystem")
 	TObjectPtr<UDaAbilitySystemComponent> AbilitySystemComponent;
 
@@ -46,9 +97,8 @@ protected:
 	UFUNCTION(BlueprintNativeEvent, Category="Inventory")
 	void OnRep_NestedInventory();
 
-	// Delegate to notify listeners when inventory changes
 	UPROPERTY(BlueprintAssignable, Category="Inventory")
-	FOnInventoryItemChanged OnInventoryItemChanged;
+	FOnInventoryItemUpdated OnInventoryItemUpdated;
 	
 public:
 

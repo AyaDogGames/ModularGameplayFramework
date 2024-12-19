@@ -5,11 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "Components/ActorComponent.h"
+#include "DaInventoryItemBase.h"
 #include "DaInventoryComponent.generated.h"
 
 struct FGameplayTagQuery;
 struct FGameplayAttribute;
-class UDaInventoryItemBase;
 
 UENUM(BlueprintType)
 enum EInventoryItemInsertionPolicy
@@ -26,7 +26,8 @@ enum EInventoryItemDuplicationPolicy
 	DisallowDuplicates
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInventoryChanged, const TArray<UDaInventoryItemBase*>&, Items);
+// SlotIndex of -1 means every index should be updated
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInventoryChanged, const TArray<UDaInventoryItemBase*>&, Items, int32, SlotIndex);
 
 UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class GAMEPLAYFRAMEWORK_API UDaInventoryComponent : public UActorComponent
@@ -38,15 +39,20 @@ public:
 	UDaInventoryComponent();
 
 	UFUNCTION(BlueprintCallable, Category="Inventory")
+	virtual void InitializeEmptySlots();
+	
+	UFUNCTION(BlueprintCallable, Category="Inventory")
 	virtual bool IsEmpty() const { return Items.IsEmpty(); }
 
 	UFUNCTION(BlueprintCallable, Category="Inventory")
-	virtual bool IsItemValid(UDaInventoryItemBase* Item) const;
-
-	//TODO: Implement base class versions of these
-	virtual bool IsItemValid(FGameplayTag Tag) const { return true; }
-	virtual bool IsComplete() const { return false; }
-
+	virtual bool IsItemValid(FGameplayTagContainer Tags) const;
+	
+	// Cannot rely on this for stackable items
+	virtual bool IsComplete() const { return FilledSlots >= MaxSize; }
+	
+	UFUNCTION(BlueprintCallable, Category="Inventory")
+	virtual int32 GetSize() const { return FilledSlots; }
+	
 	UFUNCTION(BlueprintCallable, Category="Inventory")
 	int32 GetMaxSize() const { return MaxSize; }
 
@@ -54,16 +60,16 @@ public:
 	virtual bool IsFull() const { return Items.Num() >= MaxSize-1; }
 	
 	UFUNCTION(BlueprintCallable, Category="Inventory")
-	virtual bool AddItem(UDaInventoryItemBase* Item, int32 SlotIndex = -1);
+	virtual bool AddItem(const UObject* SourceObject, int32 SlotIndex = -1);
 
 	UFUNCTION(BlueprintCallable, Category="Inventory")
-	virtual bool RemoveItem(UDaInventoryItemBase* Item, int32 SlotIndex = -1);
+	virtual bool RemoveItem(int32 SlotIndex = -1);
 
 	UFUNCTION(Server, Reliable)
-	void Server_AddItem(UDaInventoryItemBase* Item, int32 SlotIndex = INDEX_NONE);
+	void Server_AddItem(const UObject* SourceObject, int32 SlotIndex = INDEX_NONE);
 
 	UFUNCTION(Server, Reliable)
-	void Server_RemoveItem(UDaInventoryItemBase* Item, int32 SlotIndex = INDEX_NONE);
+	void Server_RemoveItem(int32 SlotIndex = INDEX_NONE);
 
 	UFUNCTION(BlueprintCallable, Category="Inventory")
 	static UDaInventoryComponent* GetInventoryFromActor(AActor* Actor);
@@ -77,7 +83,7 @@ public:
 	
 protected:
 	// Gameplay InventoryTags for static qualities
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Inventory")
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category="Inventory")
 	FGameplayTagContainer InventoryTags;
 	
 	// Array for replicated inventory items
@@ -87,15 +93,19 @@ protected:
 	// Maximum  size for this inventory
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category="Inventory")
 	int32 MaxSize = 99;
+
+	// Maximum  size for this inventory
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category="Inventory")
+	int32 FilledSlots = 0;
 	
 	UFUNCTION()
 	void OnRep_Items();
 
 	UPROPERTY()
-	TArray<UDaInventoryItemBase*> PendingPredictedItems;
+	TMap<int32, FDaInventoryItemData> PredictedItems;
 
 	UFUNCTION()
-	void RollbackPredictedItem(UDaInventoryItemBase* Item);
+	void RollbackPredictedItem(int32 SlotIndex);
 	
 	// Decide how items get added based tags it might have 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Inventory")
@@ -112,18 +122,15 @@ protected:
 	// Query items by attribute
 	UFUNCTION(BlueprintCallable, Category="Inventory")
 	TArray<UDaInventoryItemBase*> QueryByAttribute(FGameplayAttribute Attribute, float MinValue, float MaxValue) const;
-	
+
+	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
-	void NotifyInventoryChanged();
+	void NotifyInventoryChanged(int32 SlotIndex);
 };
 
 UCLASS(Blueprintable)
 class GAMEPLAYFRAMEWORK_API UDaMasterInventory : public UDaInventoryComponent
 {
 	GENERATED_BODY()
-
-public:
-	bool RemoveInventoryItem(UDaInventoryItemBase* Item, bool bRemoveSubItems);
-	
 };

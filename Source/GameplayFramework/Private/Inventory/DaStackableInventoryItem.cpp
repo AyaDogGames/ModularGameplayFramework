@@ -5,6 +5,20 @@
 
 #include "Net/UnrealNetwork.h"
 
+// TODO: FIX to use Data struct instead of expecting a new UDaInventoryItemBase
+// InventoryComp->AddItem(NewObject<UDaInventoryItemBase>());
+//
+// UDaStackableInventoryItem* NewStack = NewObject<UDaStackableInventoryItem>();
+// NewStack->Quantity = 1;
+// InventoryComp->AddItem(NewStack);
+//
+// UDaStackableInventoryItem* NewStack2 = NewObject<UDaStackableInventoryItem>();
+// NewStack2->Quantity = 10;
+// if (NewStack->CanMergeWith(NewStack2))
+// {
+// 	NewStack->MergeWith(NewStack2);
+// }
+
 bool UDaStackableInventoryItem::CanMergeWith_Implementation(const UDaInventoryItemBase* OtherItem) const
 {
 	const UDaStackableInventoryItem* StackableItem = Cast<UDaStackableInventoryItem>(OtherItem);

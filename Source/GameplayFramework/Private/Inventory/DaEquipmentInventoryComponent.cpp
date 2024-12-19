@@ -41,12 +41,13 @@ void UDaEquipmentInventoryComponent::EquipItem(UDaInventoryItemBase* Item, FName
 	}
 }
 
-bool UDaEquipmentInventoryComponent::AddItem(UDaInventoryItemBase* Item, int32 SlotIndex)
+bool UDaEquipmentInventoryComponent::AddItem(const UObject* SourceObject, int32 SlotIndex)
 {
-	if (AddItem(Item, SlotIndex)) // Use base AddItem for replication/prediction
+	if (AddItem(SourceObject, SlotIndex)) // Use base AddItem for replication/prediction
 	{
 		if (GetOwnerRole() == ROLE_Authority)
 		{
+			UDaInventoryItemBase* Item = Items[SlotIndex];
 			Item->ActivateEquipAbility(); // Activate ability on successful server equip
 		}
 		return true;
@@ -72,16 +73,17 @@ void UDaEquipmentInventoryComponent::UnequipItem(FName EquipSlotName)
 	
 	if (UDaInventoryItemBase* Item = Items[SlotIndex])
 	{
-		if (!RemoveItem(Item, SlotIndex))
+		if (!RemoveItem(SlotIndex))
 		{
 			LOG_WARNING("UnequipItem: RemoveItem failed");
 		}
 	}
 }
 
-bool UDaEquipmentInventoryComponent::RemoveItem(UDaInventoryItemBase* Item, int32 SlotIndex)
+bool UDaEquipmentInventoryComponent::RemoveItem(int32 SlotIndex)
 {
-	if (RemoveItem(Item, SlotIndex)) // Use base RemoveItem for replication/prediction
+	UDaInventoryItemBase* Item = Items[SlotIndex];
+	if (RemoveItem(SlotIndex)) // Use base RemoveItem for replication/prediction
 	{
 		if (GetOwnerRole() == ROLE_Authority)
 		{

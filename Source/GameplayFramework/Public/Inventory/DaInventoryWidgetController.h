@@ -35,5 +35,5 @@ protected:
 	UDaInventoryComponent* InventoryComponent;
 	
 	UFUNCTION()
-	void HandleInventoryChanged(const TArray<UDaInventoryItemBase*>& Items);
+	void HandleInventoryChanged(const TArray<UDaInventoryItemBase*>& Items, int32 SlotIndex);
 };

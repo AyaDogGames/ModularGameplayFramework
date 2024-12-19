@@ -27,8 +27,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Inventory|Equipment")
 	TArray<FName> SlotNames;
 
-	virtual bool AddItem(UDaInventoryItemBase* Item, int32 SlotIndex = -1) override;
-	virtual bool RemoveItem(UDaInventoryItemBase* Item, int32 SlotIndex = -1) override;
+	virtual bool AddItem(const UObject* SourceObject, int32 SlotIndex = -1) override;
+	virtual bool RemoveItem(int32 SlotIndex = -1) override;
 };
 
 
