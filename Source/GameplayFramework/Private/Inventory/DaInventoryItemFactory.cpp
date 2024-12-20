@@ -48,11 +48,44 @@ UDaInventoryItemBase* UDaBaseInventoryItemFactory::CreateInventoryItem(const UOb
 			LOG_WARNING("InventoryItemFactory::CreateInventoryItem: Failed to create FGuid ItemID");
 		}
 
-		
-		UTextureRenderTarget2D* ThumbnailRT = UDaRenderUtilLibrary::GenerateThumbnailWithRenderTarget(Pickup->GetMeshComponent(), SourceObject->GetWorld());
+		FVector2d ImageSize = FVector2D(64, 64);
+		UTextureRenderTarget2D* ThumbnailRT = UDaRenderUtilLibrary::GenerateThumbnailWithRenderTarget(Pickup->GetMeshComponent(), ImageSize, SourceObject->GetWorld());
 		if (ThumbnailRT)
 		{
-			USlateBrushAsset* ThumbnailBrush = UDaRenderUtilLibrary::CreateSlateBrushFromRenderTarget(ThumbnailRT);
+			// Uncomment to Debug write image out to disk
+			//
+			// if (ThumbnailRT)
+			// {
+			// 	FTextureRenderTargetResource* RTResource = ThumbnailRT->GameThread_GetRenderTargetResource();
+			// 	if (!RTResource)
+			// 	{
+			// 		UE_LOG(LogTemp, Error, TEXT("Render target resource is invalid."));
+			// 	}
+			//
+			// 	UKismetRenderingLibrary::ExportRenderTarget(SourceObject->GetWorld(), ThumbnailRT, TEXT("C:/Temp/"), TEXT("RenderTargetOutput.png"));
+			//
+
+			// check and see if there is a material set to create the thumbnail, and if not fallback to just using the render target directly
+			USlateBrushAsset* ThumbnailBrush = nullptr;
+			if (UMaterialInterface* BaseMaterial = Pickup->RenderTargetMaterial)
+			{
+				//UMaterialInterface* BaseMaterial = LoadObject<UMaterialInterface>(SourceObject->GetWorld(), TEXT("Material'/GameplayFramework/Materials/M_RenderTextureIcon.M_RenderTextureIcon'"));
+				// Create a dynamic material instance
+				UMaterialInstanceDynamic* DynamicMaterial = UMaterialInstanceDynamic::Create(BaseMaterial, SourceObject->GetWorld());
+				if (DynamicMaterial)
+				{
+					// Assign the render target to the material
+					DynamicMaterial->SetTextureParameterValue(FName("DynamicTexture"), ThumbnailRT);
+					ThumbnailBrush = UDaRenderUtilLibrary::CreateSlateBrushFromMaterial(DynamicMaterial, ImageSize);
+				}
+			}
+
+			if (ThumbnailBrush == nullptr)
+			{
+				// Material method didnt work so fallback to rendertarget
+				ThumbnailBrush = UDaRenderUtilLibrary::CreateSlateBrushFromRenderTarget(ThumbnailRT);
+			}
+			
 			if (ThumbnailBrush)
 			{
 				Data.ThumbnailBrush = ThumbnailBrush;

@@ -45,6 +45,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Items")
 	virtual void AddToInventory(APawn* InstigatorPawn);
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Items|Icon")
+	TObjectPtr<UMaterialInterface> RenderTargetMaterial;
+	
 	static ADaItemActor* CreateFromInventoryItem(const FDaInventoryItemData& InventoryData);
 	
 	virtual UStaticMeshComponent* GetMeshComponent() const { return MeshComp; }

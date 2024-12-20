@@ -32,10 +32,10 @@ struct FDaInventoryItemData
 	FGameplayTagContainer Tags = FGameplayTagContainer();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TObjectPtr<USlateBrushAsset> ThumbnailBrush;
+	TObjectPtr<USlateBrushAsset> ThumbnailBrush = nullptr;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UDaAbilitySet* AbilitySetToGrant = nullptr;
+	TObjectPtr<UDaAbilitySet> AbilitySetToGrant = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	int32 NestedInventorySize = 0;

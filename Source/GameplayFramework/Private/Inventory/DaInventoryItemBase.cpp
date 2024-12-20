@@ -78,7 +78,9 @@ void UDaInventoryItemBase::PopulateWithData(const FDaInventoryItemData& Data)
 {
 	InventoryItemTags = Data.Tags;
 	Name = Data.ItemName;
-
+	Description = Data.ItemDescription;
+	ItemID = Data.ItemID;
+	
 	if (Data.ThumbnailBrush)
 	{
 		ThumbnailBrush = Data.ThumbnailBrush;

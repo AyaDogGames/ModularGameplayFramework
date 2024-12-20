@@ -20,7 +20,10 @@ public:
 	static USlateBrushAsset* CreateSlateBrushFromRenderTarget(UTextureRenderTarget2D* RenderTarget);
 
 	UFUNCTION(BlueprintCallable, Category = "Render Utilites")
-	static UTextureRenderTarget2D* GenerateThumbnailWithRenderTarget(UStaticMeshComponent* MeshComp, UObject* WorldContextObject);
+	static USlateBrushAsset* CreateSlateBrushFromMaterial(UMaterialInstanceDynamic* Material, const FVector2D& ImageSize);
+	
+	UFUNCTION(BlueprintCallable, Category = "Render Utilites")
+	static UTextureRenderTarget2D* GenerateThumbnailWithRenderTarget(UStaticMeshComponent* MeshComp, const FVector2D& ImageSize, UObject* WorldContextObject);
 
 	UFUNCTION(BlueprintCallable, Category = "Render Utilites")
 	static void SetupSceneCaptureForThumbnail(USceneCaptureComponent2D* SceneCapture, UStaticMeshComponent* MeshComp);
