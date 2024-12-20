@@ -8,6 +8,7 @@
 #include "DaInteractableInterface.h"
 #include "DaPickupItem.generated.h"
 
+class UDaGameplayAbilityBase;
 class UDaAbilitySystemComponent;
 class USphereComponent;
 
@@ -21,7 +22,7 @@ class GAMEPLAYFRAMEWORK_API ADaPickupItem : public AActor, public IDaInteractabl
 public:	
 	// Sets default values for this actor's properties
 	ADaPickupItem();
-
+	
 	// Interactable interface
 	virtual void Interact_Implementation(APawn* InstigatorPawn) override;
 	virtual FText GetInteractText_Implementation(APawn* InstigatorPawn) override;
@@ -35,6 +36,9 @@ public:
 	FOnActiveStateChanged OnActiveStateChanged;
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+	UFUNCTION(BlueprintCallable, Category="PickupItem")
+	UStaticMeshComponent* GetMeshComponent() const { return BaseMeshComp; }
 	
 protected:
 
@@ -46,30 +50,33 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Components")
 	TObjectPtr<UDaAbilitySystemComponent> AbilitySystemComponent;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Respawn Settings")
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="PickupItem|Respawn Settings")
 	bool bShouldRespawn;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Respawn Settings")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="PickupItem|Respawn Settings")
 	bool bShouldRespawnOnDeath;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Respawn Settings")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="PickupItem|Respawn Settings")
 	float RespawnDelay;
 
 	// Enabled by default. Disable if not using the default hitflash material function so we don't try to set material params when hit
-	UPROPERTY(EditAnywhere, Category="Effects")
+	UPROPERTY(EditAnywhere, Category="PickupItem|Effects")
 	bool bUseDefaultHitFlash;
 	
 	// Parameter to trigger flash effect for MF_HitFlash Material Function
-	UPROPERTY(VisibleAnywhere, Category="Effects")
+	UPROPERTY(VisibleAnywhere, Category="PickupItem|Effects")
 	FName HitFlashTimeParamName;
 
 	// Parameter to set color for flash effect for MF_HitFlash Material Function
-	UPROPERTY(VisibleAnywhere, Category="Effects")
+	UPROPERTY(VisibleAnywhere, Category="PickupItem|Effects")
 	FName HitFlashColorParamName;
 
-	UPROPERTY(EditAnywhere, Category="Effects")
+	UPROPERTY(EditAnywhere, Category="PickupItem|Effects")
 	FVector HitFlashColor;
+	
+	UPROPERTY(BlueprintReadOnly, Category="PickupItem|Effects")
+	bool bHighlighted = false;
 	
 	UPROPERTY(Replicated)
 	bool bIsActive;
@@ -90,6 +97,4 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	UPROPERTY(BlueprintReadOnly)
-	bool bHighlighted = false;
 };

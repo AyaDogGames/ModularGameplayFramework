@@ -45,6 +45,20 @@ namespace CoreGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AttributesStatsPrimary, "Attributes.Stats.Primary", "Primary attributes specific player stats/buff attributes that can be modified directly");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AttributesStatsSecondary, "Attributes.Stats.Secondary", "Secondary Attributes adjust or modified via calculations or modifications based on primary attribute values");
 
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Inventory, "Inventory", "Base Inventory Tag");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Inventory_Master, "Inventory.Master", "Base Inventory Master Tag");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Inventory_Sub, "Inventory.Sub", "Base Inventory Sub Tag");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Inventory_Sub_Equipped, "Inventory.Sub.Equipped", "Tag for equipped inventory items.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Inventory_ID, "Inventory.ID", "Base Inventory ID Tag.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InventoryItem, "InventoryItem", "Base tag for inventory item.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InventoryItem_Type, "InventoryItem.Type", "Tag for inventory item types.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InventoryItem_Stackable, "InventoryItem.Stackable", "Tag for stackable inventory item types.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InventoryItem_Consumable, "InventoryItem.Consumable", "Tag for a consumable item");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InventoryItem_Equipable, "InventoryItem.Equipable", "Tag for equipable item");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InventoryItem_ID, "InventoryItem.ID", "Tag for inventory item IDs.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InventoryItem_EquipAbility, "InventoryItem.EquipAbility", "Base EquipAbility tag");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InventoryItem_Slot, "InventoryItem.Slot", "Base Tag for inventory item slot.");
+		
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_Message, "Message", "Base Message Type");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_Message_Info, "Message.Info", "Base Info Message Type");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_Message_StatusUpdate, "Message.StatusUpdate", "Base Status Update Message Type");

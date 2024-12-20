@@ -3,6 +3,9 @@
 
 #include "UI/DaHUD.h"
 
+#include "DaPlayerState.h"
+#include "Inventory/DaInventoryUIWidget.h"
+#include "Inventory/DaInventoryWidgetController.h"
 #include "UI/DaOverlayWidgetController.h"
 #include "UI/DaStatMenuWidgetController.h"
 #include "UI/DaUserWidgetBase.h"
@@ -27,6 +30,17 @@ UDaStatMenuWidgetController* ADaHUD::GetStatMenuWidgetController(const FWidgetCo
 		StatMenuWidgetController->BindCallbacksToDependencies();
 	}
 	return StatMenuWidgetController;
+}
+
+UDaInventoryWidgetController* ADaHUD::GetInventoryWidgetController(const FWidgetControllerParams& WCParams)
+{
+	if (InventoryWidgetController == nullptr)
+	{
+		InventoryWidgetController = NewObject<UDaInventoryWidgetController>(this, InventoryWidgetControllerClass);
+		InventoryWidgetController->SetWidgetControllerParams(WCParams);
+		InventoryWidgetController->BindCallbacksToDependencies();
+	}
+	return InventoryWidgetController;
 }
 
 void ADaHUD::InitOverlay(APlayerController* PC, APlayerState* PS, UDaAbilitySystemComponent* ASC)

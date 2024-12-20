@@ -13,14 +13,14 @@
 // Sets default values
 ADaPickupItem::ADaPickupItem()
 {
-	SphereComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
+	SphereComp = CreateDefaultSubobject<USphereComponent>("SphereComp");
 	RootComponent = SphereComp;
 
-	BaseMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BaseMeshComp"));
+	BaseMeshComp = CreateDefaultSubobject<UStaticMeshComponent>("BaseMeshComp");
 	BaseMeshComp->SetupAttachment(RootComponent);
 	BaseMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	AbilitySystemComponent = CreateDefaultSubobject<UDaAbilitySystemComponent>(TEXT("AbilitySystemComp"));
+	AbilitySystemComponent = CreateDefaultSubobject<UDaAbilitySystemComponent>("AbilitySystemComp");
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 	
@@ -37,6 +37,7 @@ ADaPickupItem::ADaPickupItem()
 	
 	bReplicates = true;
 }
+
 
 void ADaPickupItem::Interact_Implementation(APawn* InstigatorPawn)
 {

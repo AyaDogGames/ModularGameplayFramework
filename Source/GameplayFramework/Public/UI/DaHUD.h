@@ -7,6 +7,8 @@
 #include "GameFramework/HUD.h"
 #include "DaHUD.generated.h"
 
+class UDaInventoryUIWidget;
+class UDaInventoryWidgetController;
 class UDaAbilitySystemComponent;
 class UDaStatMenuWidgetController;
 class UDaOverlayWidgetController;
@@ -25,13 +27,14 @@ public:
 
 	UDaOverlayWidgetController* GetOverlayWidgetController(const FWidgetControllerParams& WCParams);
 	UDaStatMenuWidgetController* GetStatMenuWidgetController(const FWidgetControllerParams& WCParams);
-	
-	void InitOverlay(APlayerController* PC, APlayerState* PS, UDaAbilitySystemComponent* ASC);
+	UDaInventoryWidgetController* GetInventoryWidgetController(const FWidgetControllerParams& WCParams);
 
+	void InitOverlay(APlayerController* PC, APlayerState* PS, UDaAbilitySystemComponent* ASC);
 	void RemoveOverlay();
 
 	FORCEINLINE FGameplayTagContainer GetOverlayAttributeSetTags() { return OverlayWidgetAttributeSetTags; } 
 	FORCEINLINE FGameplayTagContainer GetStatMenuAttributeSetTags() { return StatMenuWidgetAttributeSetTags; } 
+	FORCEINLINE FGameplayTagContainer GetInventoryAttributeSetTags() { return InventoryWidgetAttributeSetTags; } 
 
 protected:
 
@@ -50,6 +53,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category=UI)
 	FGameplayTagContainer StatMenuWidgetAttributeSetTags;
 	
+	UPROPERTY(EditAnywhere, Category=UI)
+	TSubclassOf<UDaInventoryWidgetController> InventoryWidgetControllerClass;
+
+	UPROPERTY(EditAnywhere, Category=UI)
+	FGameplayTagContainer InventoryWidgetAttributeSetTags;
+	
 private:
 
 	UPROPERTY()
@@ -61,4 +70,6 @@ private:
 	UPROPERTY()
 	TObjectPtr<UDaStatMenuWidgetController> StatMenuWidgetController;
 	
+	UPROPERTY()
+	TObjectPtr<UDaInventoryWidgetController> InventoryWidgetController;
 };

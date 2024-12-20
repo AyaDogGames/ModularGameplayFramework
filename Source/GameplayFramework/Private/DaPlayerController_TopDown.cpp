@@ -12,7 +12,7 @@
 ADaPlayerController_TopDown::ADaPlayerController_TopDown()
 {
 	Spline = CreateDefaultSubobject<USplineComponent>("Spline");
-	
+	InputType = EGameplayInputType::GameAndCursor;
 }
 
 void ADaPlayerController_TopDown::PlayerTick(float DeltaTime)
@@ -96,32 +96,43 @@ void ADaPlayerController_TopDown::AbilityInputTagHeld(FGameplayTag InputTag)
 
 void ADaPlayerController_TopDown::AbilityInputTagReleased(FGameplayTag InputTag)
 {
-	if (InputTag.MatchesTagExact(CoreGameplayTags::TAG_Input_Move) && !bTargeting)
+	if (InputTag.MatchesTagExact(CoreGameplayTags::TAG_Input_Move))
 	{
-		const APawn* ControlledPawn = GetPawn();
-		if (FollowedTime <= ShortPressThreshold && ControlledPawn)
+		if (!bTargeting)
 		{
-			if (UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(this, ControlledPawn->GetActorLocation(), CachedDestination))
+			const APawn* ControlledPawn = GetPawn();
+			if (FollowedTime <= ShortPressThreshold && ControlledPawn)
 			{
-				Spline->ClearSplinePoints();
-				for (const FVector& PointLoc : NavPath->PathPoints)
+				if (UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(this, ControlledPawn->GetActorLocation(), CachedDestination))
 				{
-					Spline->AddSplinePoint(PointLoc, ESplineCoordinateSpace::World);
-					DrawDebugSphere(GetWorld(), PointLoc, 8.f, 8, FColor::Green, false, 5.f);
+					Spline->ClearSplinePoints();
+					for (const FVector& PointLoc : NavPath->PathPoints)
+					{
+						Spline->AddSplinePoint(PointLoc, ESplineCoordinateSpace::World);
+						DrawDebugSphere(GetWorld(), PointLoc, 8.f, 8, FColor::Green, false, 5.f);
+					}
+					if (NavPath->PathPoints.Num() > 0) CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
+					bAutoRunning = true;
 				}
-				if (NavPath->PathPoints.Num() > 0) CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
-				bAutoRunning = true;
+			
 			}
 			
 		}
+		else
+		{
+			if (UDaInteractionComponent* InteractionComponent = UDaInteractionComponent::FindInteractionComponent(GetPawn()))
+			{
+				InteractionComponent->PrimaryInteract();
+			}
+		}
+
 		FollowedTime = 0.f;
 		bTargeting = false;
-
 		SpawnClickFX();
 		
 		// We're just interested in movement so dont let other abilities run
 		return;
-	}
+	} 
 	
 	Super::AbilityInputTagReleased(InputTag);
 }

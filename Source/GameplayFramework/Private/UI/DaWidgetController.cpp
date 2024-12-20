@@ -23,9 +23,12 @@ void UDaWidgetController::BroadcastInitialValues()
 		//LOG("Widget Controller Set Tag: %s", It->ToString());
 
 		UDaBaseAttributeSet* AttributeSet = AbilitySystemComponent->GetAttributeSetForTag(*It);
-		for (auto& Pair: AttributeSet->TagsToAttributes)
+		if (AttributeSet)
 		{
-			BroadcastAttributeInfo(Pair.Key, Pair.Value(), AttributeSet);
+			for (auto& Pair: AttributeSet->TagsToAttributes)
+			{
+				BroadcastAttributeInfo(Pair.Key, Pair.Value(), AttributeSet);
+			}
 		}
 	}
 }
@@ -38,13 +41,16 @@ void UDaWidgetController::BindCallbacksToDependencies()
 		//LOG("Widget Controller Set Tag: %s", It->ToString());
 		
 		UDaBaseAttributeSet* AttributeSet = AbilitySystemComponent->GetAttributeSetForTag(*It);
-		for (auto& Pair: AttributeSet->TagsToAttributes)
+		if (AttributeSet)
 		{
-			AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(Pair.Value()).AddLambda(
-				[this, Pair, AttributeSet](const FOnAttributeChangeData& Data)
+			for (auto& Pair: AttributeSet->TagsToAttributes)
 			{
-				BroadcastAttributeInfo(Pair.Key, Pair.Value(), AttributeSet);
-			});
+				AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(Pair.Value()).AddLambda(
+					[this, Pair, AttributeSet](const FOnAttributeChangeData& Data)
+				{
+					BroadcastAttributeInfo(Pair.Key, Pair.Value(), AttributeSet);
+				});
+			}
 		}
 	}
 }

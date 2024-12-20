@@ -15,6 +15,7 @@
 #include "Net/UnrealNetwork.h"
 #include "DaCharacter.h"
 #include "GameplayFramework.h"
+#include "Inventory/DaInventoryComponent.h"
 
 ADaPlayerState::ADaPlayerState(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -23,6 +24,8 @@ ADaPlayerState::ADaPlayerState(const FObjectInitializer& ObjectInitializer)
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
+	InventoryComp = CreateDefaultSubobject<UDaInventoryComponent>("InventoryComponent");
+	
 	// These attribute sets will be detected by AbilitySystemComponent::InitializeComponent. Keeping a reference so that the sets don't get garbage collected before that.
 	HealthSet = CreateDefaultSubobject<UDaCharacterAttributeSet>(TEXT("HealthSet"));
 	CombatSet = CreateDefaultSubobject<UDaCombatAttributeSet>(TEXT("CombatSet"));

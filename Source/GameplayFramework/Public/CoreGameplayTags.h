@@ -5,6 +5,26 @@
 // Use our own macro (which adds the module name) to declare the gameplay tags 
 #define DA_DECLARE_GAMEPLAY_TAG_EXTERN(TagName) GAMEPLAYFRAMEWORK_API extern FNativeGameplayTag TagName;
 
+// Utility to get leaf tags from a parent tag if it exists in a tag container
+static FGameplayTag GetSpecificTag(const FGameplayTagContainer& TagContainer, const FGameplayTag& BaseTag)
+{
+	// Convert the base tag to a string for prefix searching (e.g., "X.Y")
+	FString BaseTagString = BaseTag.ToString();
+
+	// Iterate through the tag container to find a tag that matches the prefix (e.g., "X.Y.Z")
+	for (const FGameplayTag& Tag : TagContainer)
+	{
+		// Check if the tag starts with the base tag (and is longer, e.g., "X.Y.Z")
+		if (Tag.ToString().StartsWith(BaseTagString + TEXT(".")))
+		{
+			return Tag;  // Return the more specific tag if found
+		}
+	}
+
+	// If no matching tag is found, return an empty/default tag
+	return FGameplayTag();
+}
+
 namespace CoreGameplayTags
 {
 	DA_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Input);
@@ -50,6 +70,20 @@ namespace CoreGameplayTags
 	DA_DECLARE_GAMEPLAY_TAG_EXTERN(AttributesStatsPrimary);
 	DA_DECLARE_GAMEPLAY_TAG_EXTERN(AttributesStatsSecondary);
 
+	DA_DECLARE_GAMEPLAY_TAG_EXTERN(Inventory);
+	DA_DECLARE_GAMEPLAY_TAG_EXTERN(Inventory_Master);
+	DA_DECLARE_GAMEPLAY_TAG_EXTERN(Inventory_Sub);
+	DA_DECLARE_GAMEPLAY_TAG_EXTERN(Inventory_Sub_Equipped);
+	DA_DECLARE_GAMEPLAY_TAG_EXTERN(Inventory_ID);
+	DA_DECLARE_GAMEPLAY_TAG_EXTERN(InventoryItem);
+	DA_DECLARE_GAMEPLAY_TAG_EXTERN(InventoryItem_Type);
+	DA_DECLARE_GAMEPLAY_TAG_EXTERN(InventoryItem_Stackable);
+	DA_DECLARE_GAMEPLAY_TAG_EXTERN(InventoryItem_Consumable);
+	DA_DECLARE_GAMEPLAY_TAG_EXTERN(InventoryItem_Equipable);
+	DA_DECLARE_GAMEPLAY_TAG_EXTERN(InventoryItem_ID);
+	DA_DECLARE_GAMEPLAY_TAG_EXTERN(InventoryItem_EquipAbility);
+	DA_DECLARE_GAMEPLAY_TAG_EXTERN(InventoryItem_Slot);
+	
 	DA_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Message);
 	DA_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Message_Info);
 	DA_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Message_StatusUpdate);

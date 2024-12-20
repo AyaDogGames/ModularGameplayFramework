@@ -12,8 +12,15 @@ class UDaAbilitySystemComponent;
 class UDaInputConfig;
 class UInputMappingContext;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerStateChanged, APlayerState*, NewPlayerState);
+UENUM(BlueprintType)
+enum EGameplayInputType
+{
+	GameOnly,
+	CursorOnly,
+	GameAndCursor
+};
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerStateChanged, APlayerState*, NewPlayerState);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPawnChanged, APawn*, NewPawn);
 
 /**
@@ -56,6 +63,9 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UDaAbilitySystemComponent> AbilitySystemComponent;
 	UDaAbilitySystemComponent* GetAbilitySystemComponent();
+
+	UPROPERTY(EditAnywhere, Category="UI Setup")
+	TEnumAsByte<EGameplayInputType> InputType;
 	
 	UPROPERTY(EditDefaultsOnly, Category="UI Setup")
 	TSubclassOf<UUserWidget> PauseMenuClass;
