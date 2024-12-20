@@ -4,8 +4,6 @@
 #include "Inventory/DaInventoryComponent.h"
 #include "Inventory/DaInventoryItemBase.h"
 
-#include "AbilitySystemComponent.h"
-#include "AttributeSet.h"
 #include "CoreGameplayTags.h"
 #include "GameplayFramework.h"
 #include "GameplayTagContainer.h"
@@ -60,15 +58,15 @@ void UDaInventoryComponent::InitializeEmptySlots()
 
 TArray<int32> UDaInventoryComponent::GetSlotsWithDuplicates(FGameplayTagContainer Tags) const
 {
-	FGameplayTag ItemIDTag = GetSpecificTag(Tags, CoreGameplayTags::InventoryItem_ID);
+	FGameplayTag TagToCheck = GetSpecificTag(Tags, CoreGameplayTags::InventoryItem_Type);
 
 	TArray<int32> DuplicateSlotIndexes;
-	if (ItemIDTag.IsValid())
+	if (TagToCheck.IsValid())
 	{
 		int32 CurrentSlotIndex = 0;
 		for (UDaInventoryItemBase* ExistingItem : Items)
 		{
-			if (ExistingItem->GetTags().HasTagExact(ItemIDTag))
+			if (ExistingItem->GetTags().HasTagExact(TagToCheck))
 			{
 				DuplicateSlotIndexes.Add(CurrentSlotIndex);
 			}
@@ -81,9 +79,6 @@ TArray<int32> UDaInventoryComponent::GetSlotsWithDuplicates(FGameplayTagContaine
 
 bool UDaInventoryComponent::IsItemValid(FGameplayTagContainer Tags) const
 {
-	// get the full ID tag for this item to check for duplicates 
-	FGameplayTag ItemIDTag = GetSpecificTag(Tags, CoreGameplayTags::InventoryItem_ID);
-
 	// check for duplicates
 	bool bDuplicateExists = !GetSlotsWithDuplicates(Tags).IsEmpty();
 	bool bAllowedDuplicate = DuplicationPolicy == EInventoryItemDuplicationPolicy::AllowDuplicates;
@@ -191,9 +186,6 @@ bool UDaInventoryComponent::AddItem(const UObject* SourceObject, int32 SlotIndex
 								// Inform listeners we're replacing the item if we didnt just merge
 								CurrentItem->OnInventoryItemRemoved.Broadcast(OldData);
 							}
-
-							// broadcast our changes to the specific slot
-							NotifyInventoryChanged(SlotIndex);
 						}
 						else 
 						{
@@ -222,7 +214,8 @@ bool UDaInventoryComponent::AddItem(const UObject* SourceObject, int32 SlotIndex
 							FilledSlots++;
 						}
 
-						OnRep_Items();
+						// broadcast our changes to the specific slot
+						NotifyInventoryChanged(SlotIndex);
 						return true;
 					}
 				}
@@ -304,7 +297,9 @@ bool UDaInventoryComponent::RemoveItem(int32 SlotIndex)
 					FilledSlots--;
 				}
 
-				OnRep_Items();
+				// broadcast our changes to the specific slot
+				NotifyInventoryChanged(SlotIndex);
+				
 				return true;
 			}
 		}
@@ -336,7 +331,13 @@ void UDaInventoryComponent::OnRep_Items()
 
 void UDaInventoryComponent::NotifyInventoryChanged(int32 SlotIndex)
 {
-	OnInventoryChanged.Broadcast(Items, SlotIndex);
+	if (SlotIndex == INDEX_NONE)
+		OnInventoryChanged.Broadcast(Items, SlotIndex);
+	else
+	{
+		UDaInventoryItemBase* CurrentItem = Items[SlotIndex];
+		CurrentItem->OnInventoryItemUpdated.Broadcast(CurrentItem);
+	}
 }
 
 UDaInventoryComponent* UDaInventoryComponent::GetInventoryFromActor(AActor* Actor)
@@ -358,23 +359,6 @@ TArray<UDaInventoryItemBase*> UDaInventoryComponent::QueryByTag(FGameplayTagQuer
 	return FilteredItems;
 }
 
-TArray<UDaInventoryItemBase*> UDaInventoryComponent::QueryByAttribute(FGameplayAttribute Attribute, float MinValue,
-	float MaxValue) const
-{
-	TArray<UDaInventoryItemBase*> FilteredItems;
-	for (UDaInventoryItemBase* Item : Items)
-	{
-		if (Item && Item->GetAbilitySystemComponent())
-		{
-			float Value = Item->GetAbilitySystemComponent()->GetNumericAttribute(Attribute);
-			if (Value >= MinValue && Value <= MaxValue)
-			{
-				FilteredItems.Add(Item);
-			}
-		}
-	}
-	return FilteredItems;
-}
 
 
 

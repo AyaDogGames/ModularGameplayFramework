@@ -7,7 +7,6 @@
 #include "DaInventoryUIWidget.generated.h"
 
 class UDaInventoryItemBase;
-class UDaInventoryComponent;
 
 /**
  * 

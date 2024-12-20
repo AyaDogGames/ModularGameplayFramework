@@ -3,14 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
 #include "DaInventoryItemBase.generated.h"
 
 class USlateBrushAsset;
 class IDaInventoryItemFactory;
 class UDaAbilitySet;
-class UDaAbilitySystemComponent;
 class UDaInventoryComponent;
 
 USTRUCT(BlueprintType)
@@ -19,13 +17,13 @@ struct FDaInventoryItemData
 	GENERATED_BODY()
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	FName ItemID = FName();
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	int32 NestedInventorySize = 0;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FName ItemName = FName();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FName ItemDescription = FName();
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FGuid ItemID = FGuid();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TSubclassOf<class UDaInventoryItemBase> ItemClass = nullptr;
@@ -38,6 +36,9 @@ struct FDaInventoryItemData
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UDaAbilitySet* AbilitySetToGrant = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	int32 NestedInventorySize = 0;
 	
 	UPROPERTY(BlueprintReadOnly)
 	int32 ItemCount = 1;
@@ -50,7 +51,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInventoryItemUpdated, UDaInventor
  * 
  */
 UCLASS(Blueprintable, BlueprintType)
-class GAMEPLAYFRAMEWORK_API UDaInventoryItemBase : public UObject, public IAbilitySystemInterface
+class GAMEPLAYFRAMEWORK_API UDaInventoryItemBase : public UObject
 {
 	GENERATED_BODY()
 
@@ -60,8 +61,6 @@ public:
 
 	static UDaInventoryItemBase* CreateFromData(const FDaInventoryItemData& Data);
 	
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-
 	FGameplayTagContainer GetTags() const { return InventoryItemTags; }
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category="Inventory")
@@ -69,6 +68,12 @@ public:
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category="Inventory")
 	FName Name;
+
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Inventory")
+	FName Description;
+
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Inventory")
+	FGuid ItemID;
 	
 	virtual void PopulateWithData(const FDaInventoryItemData& Data);
 
@@ -81,6 +86,9 @@ public:
 	// Delegate to notify listeners when inventory changes
 	UPROPERTY(BlueprintAssignable, Category="Inventory")
 	FOnInventoryItemDataRemoved OnInventoryItemRemoved;
+
+	UPROPERTY(BlueprintAssignable, Category="Inventory")
+	FOnInventoryItemUpdated OnInventoryItemUpdated;
 	
 protected:
 
@@ -99,16 +107,10 @@ protected:
 	TObjectPtr<USlateBrushAsset> ThumbnailBrush;
 	
 	UPROPERTY(ReplicatedUsing="OnRep_NestedInventory", BlueprintReadOnly, Category = "Inventory")
-	UDaInventoryComponent* NestedInventory;
-
-	UPROPERTY(BlueprintReadOnly, Category="AbilitySystem")
-	TObjectPtr<UDaAbilitySystemComponent> AbilitySystemComponent;
+	TObjectPtr<UDaInventoryComponent> NestedInventory;
 	
 	UFUNCTION(BlueprintNativeEvent, Category="Inventory")
 	void OnRep_NestedInventory();
-
-	UPROPERTY(BlueprintAssignable, Category="Inventory")
-	FOnInventoryItemUpdated OnInventoryItemUpdated;
 	
 public:
 
@@ -121,8 +123,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	virtual void MergeWith(UDaInventoryItemBase* OtherItem);
 	
-	void InitializeAbilitySystemComponent(AActor* OwnerActor);
-
 	// Tries to activate an ability on this inventory item with the tag InventoryItem.EquipAbility
 	UFUNCTION(BlueprintCallable, Category="AbilitySystem")
 	void ActivateEquipAbility();

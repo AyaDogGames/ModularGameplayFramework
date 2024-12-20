@@ -118,17 +118,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Inventory")
 	TEnumAsByte<EInventoryItemInsertionPolicy> InsertionPolicy = EInventoryItemInsertionPolicy::AddAlways;
 
-	// Checks type and ID
+	// Checks type tag
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Inventory")
 	TEnumAsByte<EInventoryItemDuplicationPolicy> DuplicationPolicy = EInventoryItemDuplicationPolicy::AllowDuplicates;
 	
 	// Query items by tag
 	UFUNCTION(BlueprintCallable, Category="Inventory")
 	TArray<UDaInventoryItemBase*> QueryByTag(FGameplayTagQuery Query) const;
-
-	// Query items by attribute
-	UFUNCTION(BlueprintCallable, Category="Inventory")
-	TArray<UDaInventoryItemBase*> QueryByAttribute(FGameplayAttribute Attribute, float MinValue, float MaxValue) const;
 
 	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;

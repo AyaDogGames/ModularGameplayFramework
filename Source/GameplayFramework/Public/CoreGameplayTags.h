@@ -77,6 +77,9 @@ namespace CoreGameplayTags
 	DA_DECLARE_GAMEPLAY_TAG_EXTERN(Inventory_ID);
 	DA_DECLARE_GAMEPLAY_TAG_EXTERN(InventoryItem);
 	DA_DECLARE_GAMEPLAY_TAG_EXTERN(InventoryItem_Type);
+	DA_DECLARE_GAMEPLAY_TAG_EXTERN(InventoryItem_Stackable);
+	DA_DECLARE_GAMEPLAY_TAG_EXTERN(InventoryItem_Consumable);
+	DA_DECLARE_GAMEPLAY_TAG_EXTERN(InventoryItem_Equipable);
 	DA_DECLARE_GAMEPLAY_TAG_EXTERN(InventoryItem_ID);
 	DA_DECLARE_GAMEPLAY_TAG_EXTERN(InventoryItem_EquipAbility);
 	DA_DECLARE_GAMEPLAY_TAG_EXTERN(InventoryItem_Slot);

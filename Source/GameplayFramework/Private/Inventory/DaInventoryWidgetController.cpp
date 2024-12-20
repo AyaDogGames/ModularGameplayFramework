@@ -22,5 +22,11 @@ void UDaInventoryWidgetController::InitializeInventory(AActor* Actor)
 
 void UDaInventoryWidgetController::HandleInventoryChanged(const TArray<UDaInventoryItemBase*>& Items, int32 SlotIndex)
 {
-	OnInventoryChanged.Broadcast(Items);
+	if (SlotIndex == INDEX_NONE)
+	{
+		OnInventoryChanged.Broadcast(Items);
+	} else
+	{
+		FOnInventoryItemChanged.Broadcast(Items, SlotIndex);
+	}
 }

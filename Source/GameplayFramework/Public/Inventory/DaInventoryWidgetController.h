@@ -11,6 +11,7 @@ class UDaInventoryItemBase;
 
 //TODO: DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInventoryItemClicked, UDaInventoryItemBase*, item, int32, index);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInventoryItemsChanged, const TArray<UDaInventoryItemBase*>&, Items);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInventoryItemAtIndexChanged, const TArray<UDaInventoryItemBase*>&, Items, int32, SlotIndex);
 
 /**
  * 
@@ -28,11 +29,14 @@ public:
 	// Delegate to notify listeners when inventory changes
 	UPROPERTY(BlueprintAssignable, Category="Inventory")
 	FOnInventoryItemsChanged OnInventoryChanged;
+
+	UPROPERTY(BlueprintAssignable, Category="Inventory")
+	FOnInventoryItemAtIndexChanged FOnInventoryItemChanged;
 	
 protected:
 
 	UPROPERTY(Transient, VisibleAnywhere, BlueprintReadOnly, Category = "DaInventoryWidgetController")
-	UDaInventoryComponent* InventoryComponent;
+	TObjectPtr<UDaInventoryComponent> InventoryComponent;
 	
 	UFUNCTION()
 	void HandleInventoryChanged(const TArray<UDaInventoryItemBase*>& Items, int32 SlotIndex);

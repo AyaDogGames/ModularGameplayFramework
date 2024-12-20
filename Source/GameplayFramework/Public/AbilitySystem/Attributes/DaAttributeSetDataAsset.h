@@ -12,10 +12,10 @@ struct FDynamicAttributeDefinition
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Attributes")
-	FName AttributeName; // Name of the attribute (e.g., "Health", "Mana")
+	FName AttributeName = FName(); // Name of the attribute (e.g., "Health", "Mana")
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Attributes")
-	float DefaultValue; // Default value for this attribute
+	float DefaultValue = 0.0f; // Default value for this attribute
 };
 
 /**

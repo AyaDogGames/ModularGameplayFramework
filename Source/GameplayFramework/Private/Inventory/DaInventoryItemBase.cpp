@@ -3,10 +3,7 @@
 
 #include "Inventory/DaInventoryItemBase.h"
 #include "Inventory/DaInventoryComponent.h"
-
-#include "AbilitySystemComponent.h"
 #include "CoreGameplayTags.h"
-#include "AbilitySystem/DaAbilitySystemComponent.h"
 #include "Net/UnrealNetwork.h"
 
 // Create Static Array of Factories
@@ -17,10 +14,6 @@ UDaInventoryItemBase::UDaInventoryItemBase()
 	// Initialize components only if needed
 	if (!HasAnyFlags(RF_ClassDefaultObject))
 	{
-		AbilitySystemComponent = CreateDefaultSubobject<UDaAbilitySystemComponent>(TEXT("AbilitySystemComp"));
-		AbilitySystemComponent->SetIsReplicated(true);
-		AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
-
 		NestedInventory = CreateDefaultSubobject<UDaInventoryComponent>(TEXT("NestedInventory"));
 	}
 }
@@ -32,6 +25,8 @@ void UDaInventoryItemBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	DOREPLIFETIME(UDaInventoryItemBase, NestedInventory);
 	DOREPLIFETIME(UDaInventoryItemBase, bIsEmptySlot);
 	DOREPLIFETIME(UDaInventoryItemBase, Name);
+	DOREPLIFETIME(UDaInventoryItemBase, Description);
+	DOREPLIFETIME(UDaInventoryItemBase, ItemID);
 	DOREPLIFETIME(UDaInventoryItemBase, InventoryItemTags);
 	DOREPLIFETIME(UDaInventoryItemBase, SlotTags);
 }
@@ -41,7 +36,8 @@ FDaInventoryItemData UDaInventoryItemBase::ToData() const
 	FDaInventoryItemData Data;
 	Data.Tags = InventoryItemTags;
 	Data.ItemName = Name;
-	Data.ItemID = FName(GetNameSafe(this)); // TODO: Generate UUID From Tags
+	Data.ItemDescription = Description;
+	Data.ItemID = ItemID;
 	Data.ItemClass = GetClass();
 	Data.NestedInventorySize = NestedInventory ? NestedInventory->GetMaxSize() : 0;
 	Data.AbilitySetToGrant = AbilitySetToGrant;
@@ -57,6 +53,8 @@ void UDaInventoryItemBase::ClearData()
 	AbilitySetToGrant = nullptr;
 	ThumbnailBrush = nullptr;
 	Name = FName();
+	Description = FName();
+	ItemID = FGuid();
 }
 
 FGameplayTag UDaInventoryItemBase::GetType() const
@@ -76,11 +74,6 @@ UDaInventoryItemBase* UDaInventoryItemBase::CreateFromData(const FDaInventoryIte
 	return NewItem;
 }
 
-UAbilitySystemComponent* UDaInventoryItemBase::GetAbilitySystemComponent() const
-{
-	return Cast<UAbilitySystemComponent>(AbilitySystemComponent);
-}
-
 void UDaInventoryItemBase::PopulateWithData(const FDaInventoryItemData& Data)
 {
 	InventoryItemTags = Data.Tags;
@@ -95,7 +88,7 @@ void UDaInventoryItemBase::PopulateWithData(const FDaInventoryItemData& Data)
 	{
 		AbilitySetToGrant = Data.AbilitySetToGrant;
 	}
-	
+
 	// TODO: CreateNestedInventory( Data.NestedInventorySize );
 }
 
@@ -108,18 +101,6 @@ bool UDaInventoryItemBase::CanMergeWith(const UDaInventoryItemBase* OtherItem) c
 void UDaInventoryItemBase::MergeWith(UDaInventoryItemBase* OtherItem)
 {
 	// subclasses to implement if desired merging behavior
-}
-
-void UDaInventoryItemBase::InitializeAbilitySystemComponent(AActor* OwnerActor)
-{
-	if (AbilitySystemComponent)
-	{
-		AbilitySystemComponent->InitAbilityActorInfo(OwnerActor, OwnerActor);
-		if (AbilitySetToGrant)
-		{
-			AbilitySystemComponent->GrantSet(AbilitySetToGrant);
-		}
-	}
 }
 
 void UDaInventoryItemBase::ActivateEquipAbility()
@@ -147,7 +128,7 @@ void UDaInventoryItemBase::EndEquipAbility()
 void UDaInventoryItemBase::OnRep_NestedInventory_Implementation()
 {
 	//Notify/Update UI
-	OnInventoryItemUpdated.Broadcast(this);
+	//OnInventoryItemUpdated.Broadcast(this);
 }
 
 UDaInventoryComponent* UDaInventoryItemBase::GetNestedInventory() const
