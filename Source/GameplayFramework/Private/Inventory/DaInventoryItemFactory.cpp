@@ -23,6 +23,12 @@ TSubclassOf<UDaInventoryItemBase> UDaBaseInventoryItemFactory::DetermineInventor
 			return UDaStackableInventoryItem::StaticClass();
 		}
 
+		if (Pickup->TypeTags.HasTagExact(CoreGameplayTags::InventoryItem_Equipable))
+		{
+			// TODO: make an equipableItem class
+			return UDaInventoryItemBase::StaticClass();
+		}
+		
 		if (Pickup->TypeTags.HasTagExact(CoreGameplayTags::InventoryItem))
 		{
 			return UDaInventoryItemBase::StaticClass(); 
