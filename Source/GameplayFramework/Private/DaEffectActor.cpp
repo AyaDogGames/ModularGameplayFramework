@@ -6,19 +6,6 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 
-ADaEffectActor::ADaEffectActor()
-{
-	PrimaryActorTick.bCanEverTick = false;
-	SetRootComponent(CreateDefaultSubobject<USceneComponent>("SceneRoot"));
-	
-}
-
-void ADaEffectActor::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
 void ADaEffectActor::ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGameplayEffect> GameplayEffectClass)
 {
 	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))

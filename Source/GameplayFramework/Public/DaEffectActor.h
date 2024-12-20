@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "DaItemActor.h"
 #include "GameFramework/Actor.h"
 #include "GameplayEffectTypes.h"
 #include "DaEffectActor.generated.h"
@@ -26,15 +27,11 @@ enum EEffectRemovalPolicy
 };
 
 UCLASS()
-class GAMEPLAYFRAMEWORK_API ADaEffectActor : public AActor
+class GAMEPLAYFRAMEWORK_API ADaEffectActor : public ADaItemActor
 {
 	GENERATED_BODY()
 
-public:
-	ADaEffectActor();
-
 protected:
-	virtual void BeginPlay() override;
 	
 	UFUNCTION(BlueprintCallable)
 	void ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGameplayEffect> GameplayEffectClass);
